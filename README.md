@@ -29,7 +29,7 @@ Express + Sequelize (MySQL) backend for authentication, users, modules/permissio
 - Socket.io (chat infra)
 
 ## Current API Base
-- Base URL: `http://localhost:3000`
+- Base URL: `http://localhost:8000`
 - API prefix: `/api/v1`
 - Health check: `GET /health`
 
@@ -87,7 +87,7 @@ npm run dev
 - Ready file: `postman_collection.json` (manually curated and updated)
 - Import this file in Postman.
 - Set variables:
-  - `base_url` (default `http://localhost:3000`)
+  - `base_url` (default `http://localhost:8000`)
   - `token`
   - `uuid` and other IDs used by requests
 

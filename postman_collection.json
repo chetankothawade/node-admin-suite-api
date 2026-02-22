@@ -1,0 +1,341 @@
+{
+  "info": {
+    "name": "Node Admin API",
+    "_postman_id": "db42bc84-51d5-46af-a9f8-62a2967f1f10",
+    "description": "Postman collection for APIs mounted in app.js",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "uuid", "value": "" },
+    { "key": "userId", "value": "1" },
+    { "key": "moduleId", "value": "1" },
+    { "key": "conversationId", "value": "1" },
+    { "key": "messageUuid", "value": "" },
+    { "key": "token_reset", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /api/v1/register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\",\n  \"phone\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "logout"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/v1/reset-password/:token",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reset-password/{{token_reset}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reset-password", "{{token_reset}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "GET /api/v1/user/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/me", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "me"] }
+          }
+        },
+        {
+          "name": "GET /api/v1/user/list",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/list?page=1&limit=10", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "list"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "POST /api/v1/user/create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo User\",\n  \"email\": \"demo@example.com\",\n  \"phone\": \"9999999999\",\n  \"role\": \"admin\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/v1/user/create", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "create"] }
+          }
+        },
+        {
+          "name": "PUT /api/v1/user/update/:uuid",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated User\",\n  \"email\": \"updated@example.com\",\n  \"phone\": \"8888888888\",\n  \"role\": \"admin\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/user/update/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "update", "{{uuid}}"] }
+          }
+        },
+        {
+          "name": "PATCH /api/v1/user/delete/:uuid",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/delete/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "delete", "{{uuid}}"] }
+          }
+        },
+        {
+          "name": "GET /api/v1/user/get/:uuid",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/get/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "get", "{{uuid}}"] }
+          }
+        },
+        {
+          "name": "PUT /api/v1/user/status/:uuid",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/user/status/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "status", "{{uuid}}"] }
+          }
+        },
+        {
+          "name": "GET /api/v1/user/getList",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/getList", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "getList"] }
+          }
+        },
+        {
+          "name": "GET /api/v1/user/export/csv",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/user/export/csv", "host": ["{{base_url}}"], "path": ["api", "v1", "user", "export", "csv"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Access",
+      "item": [
+        {
+          "name": "GET /api/v1/access/:userId",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/v1/access/{{userId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "access", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module",
+      "item": [
+        {
+          "name": "GET /api/v1/module/",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/module/", "host": ["{{base_url}}"], "path": ["api", "v1", "module", ""] }
+          }
+        },
+        {
+          "name": "GET /api/v1/module/list",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/list", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "list"] } }
+        },
+        {
+          "name": "GET /api/v1/module/list/:id",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/list/{{moduleId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "list", "{{moduleId}}"] } }
+        },
+        {
+          "name": "POST /api/v1/module/create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Users\",\n  \"url\": \"/users\",\n  \"icon\": \"users\",\n  \"seqNo\": 1,\n  \"isPermission\": \"Y\",\n  \"isSubModule\": \"N\",\n  \"parentId\": 0\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/module/create", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "create"] }
+          }
+        },
+        {
+          "name": "PUT /api/v1/module/update/:uuid",
+          "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Users\",\n  \"url\": \"/users\",\n  \"icon\": \"users\",\n  \"seqNo\": 1,\n  \"isPermission\": \"Y\",\n  \"isSubModule\": \"N\",\n  \"parentId\": 0\n}" }, "url": { "raw": "{{base_url}}/api/v1/module/update/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "update", "{{uuid}}"] } }
+        },
+        {
+          "name": "DELETE /api/v1/module/delete/:uuid",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/delete/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "delete", "{{uuid}}"] } }
+        },
+        {
+          "name": "GET /api/v1/module/get/:uuid",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/get/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "get", "{{uuid}}"] } }
+        },
+        {
+          "name": "PUT /api/v1/module/status/:uuid",
+          "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/module/status/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "status", "{{uuid}}"] } }
+        },
+        {
+          "name": "GET /api/v1/module/getList",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/getList", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "getList"] } }
+        },
+        {
+          "name": "GET /api/v1/module/getAllList",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/module/getAllList", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "getAllList"] } }
+        },
+        {
+          "name": "POST /api/v1/module/toggleUserPermission",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": 1,\n  \"modulePermissionId\": 1,\n  \"isChecked\": true\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/module/toggleUserPermission", "host": ["{{base_url}}"], "path": ["api", "v1", "module", "toggleUserPermission"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CMS",
+      "item": [
+        { "name": "GET /api/v1/cms/list", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/cms/list", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "list"] } } },
+        { "name": "POST /api/v1/cms/create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"About\",\n  \"content\": \"About us content\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/create", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "create"] } } },
+        { "name": "PUT /api/v1/cms/update/:uuid", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"About Updated\",\n  \"content\": \"Updated content\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/update/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "update", "{{uuid}}"] } } },
+        { "name": "DELETE /api/v1/cms/delete/:uuid", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/cms/delete/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "delete", "{{uuid}}"] } } },
+        { "name": "GET /api/v1/cms/get/:uuid", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/cms/get/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "get", "{{uuid}}"] } } },
+        { "name": "PUT /api/v1/cms/status/:uuid", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/status/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "status", "{{uuid}}"] } } }
+      ]
+    },
+    {
+      "name": "Editor",
+      "item": [
+        {
+          "name": "POST /api/v1/editor/upload",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file", "src": "" }]
+            },
+            "url": { "raw": "{{base_url}}/api/v1/editor/upload", "host": ["{{base_url}}"], "path": ["api", "v1", "editor", "upload"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        { "name": "POST /api/v1/chat/conversation", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": 1,\n  \"otherUserId\": 2,\n  \"type\": \"direct\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/chat/conversation", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "conversation"] } } },
+        { "name": "POST /api/v1/chat/message", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "formdata", "formdata": [{ "key": "conversationId", "value": "{{conversationId}}", "type": "text" }, { "key": "senderId", "value": "{{userId}}", "type": "text" }, { "key": "message", "value": "Hello", "type": "text" }, { "key": "files", "type": "file", "src": "" }] }, "url": { "raw": "{{base_url}}/api/v1/chat/message", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "message"] } } },
+        { "name": "GET /api/v1/chat/messages/:conversationId", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/chat/messages/{{conversationId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "messages", "{{conversationId}}"] } } },
+        { "name": "PATCH /api/v1/chat/message/:uuid/read", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/chat/message/{{messageUuid}}/read", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "message", "{{messageUuid}}", "read"] } } },
+        { "name": "PATCH /api/v1/chat/message/read/batch", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": 1,\n  \"messageIds\": [1,2,3]\n}" }, "url": { "raw": "{{base_url}}/api/v1/chat/message/read/batch", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "message", "read", "batch"] } } },
+        { "name": "GET /api/v1/chat/conversations/:userId", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/chat/conversations/{{userId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "conversations", "{{userId}}"] } } },
+        { "name": "GET /api/v1/chat/group-conversations/:userId", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/chat/group-conversations/{{userId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "group-conversations", "{{userId}}"] } } },
+        { "name": "GET /api/v1/chat/recipients/:id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/chat/recipients/{{userId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "recipients", "{{userId}}"] } } },
+        { "name": "GET /api/v1/chat/unread-count/:userId", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/chat/unread-count/{{userId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "unread-count", "{{userId}}"] } } },
+        { "name": "DELETE /api/v1/chat/message/:uuid", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/chat/message/{{messageUuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "chat", "message", "{{messageUuid}}"] } } }
+      ]
+    },
+    {
+      "name": "Category",
+      "item": [
+        { "name": "GET /api/v1/category/list", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/category/list", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "list"] } } },
+        { "name": "GET /api/v1/category/list/:id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/category/list/{{moduleId}}", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "list", "{{moduleId}}"] } } },
+        { "name": "POST /api/v1/category/create", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Category A\",\n  \"parentId\": null\n}" }, "url": { "raw": "{{base_url}}/api/v1/category/create", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "create"] } } },
+        { "name": "PUT /api/v1/category/update/:uuid", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Category B\",\n  \"parentId\": null\n}" }, "url": { "raw": "{{base_url}}/api/v1/category/update/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "update", "{{uuid}}"] } } },
+        { "name": "DELETE /api/v1/category/delete/:uuid", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/category/delete/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "delete", "{{uuid}}"] } } },
+        { "name": "GET /api/v1/category/get/:uuid", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/category/get/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "get", "{{uuid}}"] } } },
+        { "name": "PUT /api/v1/category/status/:uuid", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/category/status/{{uuid}}", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "status", "{{uuid}}"] } } },
+        { "name": "GET /api/v1/category/getList", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/category/getList", "host": ["{{base_url}}"], "path": ["api", "v1", "category", "getList"] } } }
+      ]
+    }
+  ]
+}
