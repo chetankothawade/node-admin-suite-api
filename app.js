@@ -9,14 +9,8 @@ import path from 'path';
 import rateLimit from 'express-rate-limit';
 
 // Import routes
-import authRoute from './src/routes/auth.route.js';
-import userRoute from './src/routes/user.route.js';
-import accessRoute from "./src/routes/access.route.js";
-import moduleRoute from "./src/routes/module.route.js";
-import editorRoute from "./src/routes/editor.route.js";
-import cmsRoute from "./src/routes/cms.route.js";
-import chatRoute from "./src/routes/chat.route.js";
-import categoryRoute from "./src/routes/category.route.js";
+import v1Routes from "./src/routes/v1/index.js";
+import v2Routes from "./src/routes/v2/index.js";
 
 // Load environment variables
 dotenv.config({ quiet: true });
@@ -70,14 +64,8 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/v1', authRoute);
-app.use('/api/v1/user', userRoute);
-app.use("/api/v1/access", accessRoute);
-app.use("/api/v1/module", moduleRoute);
-app.use("/api/v1/cms", cmsRoute);
-app.use("/api/v1/editor", editorRoute);
-app.use("/api/v1/chat", chatRoute);
-app.use("/api/v1/category", categoryRoute);
+app.use("/api/v1", v1Routes);
+app.use("/api/v2", v2Routes);
 
 // 5. 404 Handler: Placed after all other routes
 app.use((req, res) => {
