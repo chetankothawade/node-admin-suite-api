@@ -17,6 +17,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1005.0",
+    "@aws-sdk/s3-request-presigner": "^3.1005.0",
     "@faker-js/faker": "^10.0.0",
     "@prisma/client": "^6.6.0",
     "bcryptjs": "^3.0.2",
@@ -31,7 +33,8 @@
     "i18n": "^0.15.1",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.2",
+    "multer": "^2.1.1",
+    "multer-s3": "^3.0.1",
     "mysql2": "^3.14.5",
     "nodemailer": "^7.0.6",
     "socket.io": "^4.8.1"

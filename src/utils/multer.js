@@ -1,22 +1,9 @@
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
-// Ensure upload directories exist
-['uploads/images', 'uploads/docs', 'uploads/editor', 'uploads/chat'].forEach(dir => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
-
-// Common storage function
-const storage = (folder) => multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, folder);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Use memory storage so files can be persisted through StorageManager
+// (local disk or S3 based on FILESYSTEM_DISK).
+const storage = multer.memoryStorage();
 
 // Image file filter
 const imageFilter = (req, file, cb) => {
@@ -77,33 +64,33 @@ const chatFilter = (req, file, cb) => {
 
 // Uploaders
 export const uploadImage = multer({
-    storage: storage('uploads/images'),
+    storage,
     fileFilter: imageFilter,
-    limits: { file_size: 5 * 1024 * 1024 }
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 export const uploadDoc = multer({
-    storage: storage('uploads/docs'),
+    storage,
     fileFilter: docFilter,
-    limits: { file_size: 10 * 1024 * 1024 }
+    limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 export const uploadMixed = multer({
-    storage: storage('uploads'),
+    storage,
     fileFilter: mixedFilter,
-    limits: { file_size: 10 * 1024 * 1024 }
+    limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 export const uploadEditor = multer({
-    storage: storage('uploads/editor'),
+    storage,
     fileFilter: editorFilter,
-    limits: { file_size: 10 * 1024 * 1024 }
+    limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 export const uploadChat = multer({
-    storage: storage('uploads/chat'),
+    storage,
     fileFilter: chatFilter,
-    limits: { file_size: 20 * 1024 * 1024 }
+    limits: { fileSize: 20 * 1024 * 1024 }
 });
 
 export default { uploadImage, uploadDoc, uploadMixed, uploadEditor, uploadChat };

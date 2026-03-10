@@ -1,8 +1,7 @@
 import bcrypt from "bcryptjs";
-import fs from "fs";
-import path from "path";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
+import { Storage } from "./storage/storageManager.js";
 
 const SALT_ROUNDS = 10;
 
@@ -26,16 +25,32 @@ export class UserService {
     this.userRepository = userRepository;
   }
 
-  buildAvatarUrl(req, filename) {
+  buildAbsoluteUrl(req, url) {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    return `${baseUrl}/uploads/images/${filename}`;
+    return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   }
 
-  removeAvatarFromDisk(avatarUrl) {
+  extractStoragePath(avatarUrl = "") {
+    if (!avatarUrl) return "";
+    try {
+      const parsed = new URL(avatarUrl);
+      return parsed.pathname.replace(/^\/+/, "");
+    } catch {
+      return avatarUrl.replace(/^\/+/, "");
+    }
+  }
+
+  async removeAvatarFromStorage(avatarUrl) {
     if (!avatarUrl) return;
-    const oldFile = path.join("uploads", path.basename(avatarUrl));
-    if (fs.existsSync(oldFile)) {
-      fs.unlinkSync(oldFile);
+
+    const oldFilePath = this.extractStoragePath(avatarUrl);
+    if (!oldFilePath) return;
+
+    const exists = await Storage.exists(oldFilePath);
+    if (exists) {
+      await Storage.delete(oldFilePath);
     }
   }
 
@@ -59,7 +74,8 @@ export class UserService {
       BaseService.throwError(409, "auth.register.user_exists");
     }
 
-    const avatar = file ? this.buildAvatarUrl(req, file.filename) : "";
+    const avatarUpload = file ? await Storage.put(file, "images") : null;
+    const avatar = avatarUpload ? this.buildAbsoluteUrl(req, avatarUpload.url) : "";
     const password = await bcrypt.hash(body.password, SALT_ROUNDS);
 
     return this.userRepository.createUser(
@@ -132,8 +148,9 @@ export class UserService {
 
     let avatar = user.avatar;
     if (file) {
-      this.removeAvatarFromDisk(user.avatar);
-      avatar = this.buildAvatarUrl(req, file.filename);
+      await this.removeAvatarFromStorage(user.avatar);
+      const avatarUpload = await Storage.put(file, "images");
+      avatar = this.buildAbsoluteUrl(req, avatarUpload.url);
     }
 
     return this.userRepository.updateUser(

@@ -1,5 +1,6 @@
 import { chatRepository } from "../repositories/chat.repository.js";
 import { BaseService } from "./base.service.js";
+import { Storage } from "./storage/storageManager.js";
 
 export const chatService = {
   async createConversation({ user_id, other_user_id, other_user_ids = [], type, name }) {
@@ -81,12 +82,15 @@ export const chatService = {
     });
 
     if (hasFiles) {
+      const storedFiles = await Storage.putMultiple(uploadedFiles, "chat");
+
       await chatRepository.messageFile.createMany({
-        data: uploadedFiles.map((file) => {
-          const relativePath = file.destination.replace(/\\/g, "/").replace(/^uploads\//, "uploads/");
+        data: storedFiles.map((stored, index) => {
+          const file = uploadedFiles[index];
+          const fileUrl = stored.url.startsWith("http") ? stored.url : `${base_url}${stored.url}`;
           return {
             message_id: newMessage.id,
-            file_path: `${base_url}/${relativePath}/${file.filename}`,
+            file_path: fileUrl,
             file_type: file.mimetype,
             file_size: BigInt(file.size),
           };

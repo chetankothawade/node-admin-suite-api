@@ -25,9 +25,10 @@ const app = express();
 
 //const PORT = Number.parseInt(process.env.PORT, 10) || 3000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+const UPLOAD_PATH = process.env.UPLOAD_PATH || "uploads";
 
-// Serve static files from uploads folder
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// Serve static files from configured upload base folder
+app.use(`/${UPLOAD_PATH}`, express.static(path.join(process.cwd(), UPLOAD_PATH)));
 
 // 1. Core Security Middleware: Placed at the top for maximum coverage.
 app.use(helmet());
