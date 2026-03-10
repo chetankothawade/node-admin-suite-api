@@ -1,0 +1,5 @@
+ALTER TABLE comments
+  CHANGE taskId task_id INT NOT NULL,
+  CHANGE userId user_id INT NOT NULL,
+  CHANGE createdAt created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
+

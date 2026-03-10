@@ -76,3 +76,5 @@ export const handleError = (
   console.error(logPrefix, error);
   return sendResponse(res, 500, false, fallbackMessage);
 };
+
+

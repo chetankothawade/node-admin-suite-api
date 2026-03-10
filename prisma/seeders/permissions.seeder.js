@@ -24,3 +24,5 @@ export async function seedPermissions(prisma) {
 
   console.log("permissions.seeder: done");
 }
+
+

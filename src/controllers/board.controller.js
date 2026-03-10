@@ -87,14 +87,16 @@ export const updateBoardStatus = async (req, res) => {
 
 /**
  * @desc Get board list context by user id
- * @route GET /board/:userId/lists
+ * @route GET /board/:user_id/lists
  * @access Authenticated
  */
 export const getBoardLists = async (req, res) => {
   try {
-    const board = await boardService.getBoardLists(req.params.userId);
+    const board = await boardService.getBoardLists(req.params.user_id);
     return sendResponse(res, 200, true, "board.get.success", { board });
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Board Get Error:" });
   }
 };
+
+

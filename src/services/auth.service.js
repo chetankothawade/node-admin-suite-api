@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import prisma from "../lib/prisma.js";
+import { authRepository } from "../repositories/auth.repository.js";
 import { BaseService } from "./base.service.js";
 import { emailService } from "../utils/sendEmail.js";
 import { generateToken } from "../utils/token.js";
@@ -17,10 +17,10 @@ const withPasswordSelect = {
   avatar: true,
   role: true,
   status: true,
-  resetPasswordToken: true,
-  resetPasswordExpire: true,
-  createdAt: true,
-  updatedAt: true,
+  reset_password_token: true,
+  reset_password_expire: true,
+  created_at: true,
+  updated_at: true,
 };
 
 export const authService = {
@@ -30,15 +30,13 @@ export const authService = {
       BaseService.throwError(400, "auth.register.fields_required");
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await authRepository.findUserByEmail(email);
     if (existingUser) {
       BaseService.throwError(409, "auth.register.user_exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const newUser = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role },
-    });
+    const newUser = await authRepository.createUser({ name, email, password: hashedPassword, role });
     const token = generateToken(newUser);
 
     return {
@@ -59,10 +57,7 @@ export const authService = {
       BaseService.throwError(400, "auth.login.fields_required");
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: withPasswordSelect,
-    });
+    const user = await authRepository.findUserByEmail(email, withPasswordSelect);
     if (!user) {
       BaseService.throwError(404, "auth.login.user_not_found");
     }
@@ -96,7 +91,7 @@ export const authService = {
       BaseService.throwError(400, "auth.forgot_password.email_required");
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await authRepository.findUserByEmail(email);
     if (!user) {
       BaseService.throwError(404, "auth.forgot_password.user_not_found");
     }
@@ -104,22 +99,19 @@ export const authService = {
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetPasswordToken: resetTokenHash,
-        resetPasswordExpire: new Date(Date.now() + 15 * 60 * 1000),
-      },
+    await authRepository.updateUserById(user.id, {
+        reset_password_token: resetTokenHash,
+        reset_password_expire: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-    const baseUrl =
+    const base_url =
       user.role === "admin" ? process.env.FRONTEND_ADMIN_URL : process.env.FRONTEND_USER_URL;
-    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
+    const reset_url = `${base_url}/reset-password/${resetToken}`;
 
     await emailService.send("forgotPassword", {
       to: user.email,
       subject: `Hello ${user.name}, reset your password`,
-      templateVars: { name: user.name, resetUrl },
+      templateVars: { name: user.name, reset_url },
     });
   },
 
@@ -130,26 +122,17 @@ export const authService = {
     }
 
     const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
-    const user = await prisma.user.findFirst({
-      where: {
-        resetPasswordToken: resetTokenHash,
-        resetPasswordExpire: { gt: new Date() },
-      },
-      select: withPasswordSelect,
-    });
+    const user = await authRepository.findResettableUser(resetTokenHash, new Date(), withPasswordSelect);
 
     if (!user) {
       BaseService.throwError(400, "auth.reset_password.invalid_or_expired");
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
+    await authRepository.updateUserById(user.id, {
         password: hashedPassword,
-        resetPasswordToken: null,
-        resetPasswordExpire: null,
-      },
+        reset_password_token: null,
+        reset_password_expire: null,
     });
   },
 
@@ -157,3 +140,5 @@ export const authService = {
     return { role: user?.role };
   },
 };
+
+

@@ -73,22 +73,22 @@ model User {
   avatar              String?    @db.VarChar(255)
   role                UserRole   @default(user)
   status              UserStatus @default(active)
-  resetPasswordToken  String?
-  resetPasswordExpire DateTime?
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  reset_password_token  String?
+  reset_password_expire DateTime?
+  created_at           DateTime   @default(now())
+  updated_at           DateTime   @updatedAt
 
-  userPermissions      UserPermission[]
-  conversationMembers  ConversationMember[]
-  createdBoards        Board[]              @relation("BoardCreator")
-  createdTasks         Task[]               @relation("TaskCreator")
-  assignedTasks        Task[]               @relation("TaskAssignee")
+  user_permissions      UserPermission[]
+  conversation_members  ConversationMember[]
+  created_boards        Board[]              @relation("BoardCreator")
+  created_tasks         Task[]               @relation("TaskCreator")
+  assigned_tasks        Task[]               @relation("TaskAssignee")
   comments             Comment[]
   attachments          Attachment[]         @relation("AttachmentUploader")
-  activityLogs         ActivityLog[]
-  sentMessages         Message[]            @relation("MessageSender")
-  messageStatuses      MessageStatus[]
-  createdConversations Conversation[]       @relation("ConversationCreator")
+  activity_logs         ActivityLog[]
+  sent_messages         Message[]            @relation("MessageSender")
+  message_statuses      MessageStatus[]
+  created_conversations Conversation[]       @relation("ConversationCreator")
 
   @@map("users")
 }
@@ -96,20 +96,20 @@ model User {
 model Module {
   id           Int            @id @default(autoincrement())
   uuid         String         @unique @default(uuid()) @db.Char(36)
-  parentId     Int            @default(0)
+  parent_id     Int            @default(0)
   name         String         @unique @db.VarChar(50)
   url          String?        @db.VarChar(100)
   icon         String?        @db.VarChar(100)
-  seqNo        Int?
-  isSubModule  YN             @default(N)
+  seq_no        Int?
+  is_sub_module  YN             @default(N)
   status       ActiveInactive @default(active)
-  isPermission YN             @default(N)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  is_permission YN             @default(N)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
 
-  parent            Module?            @relation("ModuleHierarchy", fields: [parentId], references: [id], onDelete: NoAction)
+  parent            Module?            @relation("ModuleHierarchy", fields: [parent_id], references: [id], onDelete: NoAction)
   children          Module[]           @relation("ModuleHierarchy")
-  modulePermissions ModulePermission[]
+  module_permissions ModulePermission[]
 
   @@map("modules")
 }
@@ -119,10 +119,10 @@ model Permission {
   uuid      String         @unique @default(uuid()) @db.Char(36)
   action    String
   status    ActiveInactive @default(active)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
 
-  modulePermissions ModulePermission[]
+  module_permissions ModulePermission[]
 
   @@map("permissions")
 }
@@ -130,31 +130,31 @@ model Permission {
 model ModulePermission {
   id           Int      @id @default(autoincrement())
   uuid         String   @unique @default(uuid()) @db.Char(36)
-  moduleId     Int
-  permissionId Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  module_id     Int
+  permission_id Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
-  module          Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  permission      Permission       @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  userPermissions UserPermission[]
+  module          Module           @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  permission      Permission       @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  user_permissions UserPermission[]
 
-  @@unique([moduleId, permissionId], map: "unique_module_permission")
+  @@unique([module_id, permission_id], map: "unique_module_permission")
   @@map("module_permissions")
 }
 
 model UserPermission {
   id                 Int      @id @default(autoincrement())
   uuid               String   @unique @default(uuid()) @db.Char(36)
-  userId             Int
-  modulePermissionId Int
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  user_id             Int
+  module_permission_id Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  modulePermission ModulePermission @relation(fields: [modulePermissionId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  module_permission ModulePermission @relation(fields: [module_permission_id], references: [id], onDelete: Cascade)
 
-  @@unique([userId, modulePermissionId], map: "unique_user_permission")
+  @@unique([user_id, module_permission_id], map: "unique_user_permission")
   @@map("user_permissions")
 }
 
@@ -164,8 +164,8 @@ model Cms {
   title     String         @unique @db.VarChar(100)
   content   String         @db.Text
   status    ActiveInactive @default(active)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
 
   @@map("cms")
 }
@@ -175,10 +175,10 @@ model Conversation {
   uuid      String           @unique @default(uuid()) @db.Char(36)
   type      ConversationType @default(direct)
   name      String?          @db.VarChar(255)
-  createdBy Int?
-  createdAt DateTime         @default(now())
+  created_by Int?
+  created_at DateTime         @default(now())
 
-  creator  User?                @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  creator  User?                @relation("ConversationCreator", fields: [created_by], references: [id], onDelete: SetNull)
   members  ConversationMember[]
   messages Message[]
 
@@ -188,33 +188,33 @@ model Conversation {
 model ConversationMember {
   id             Int      @id @default(autoincrement())
   uuid           String   @unique @default(uuid()) @db.Char(36)
-  conversationId Int
-  userId         Int
-  joinedAt       DateTime @default(now())
+  conversation_id Int
+  user_id         Int
+  joined_at       DateTime @default(now())
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@map("conversationMembers")
+  @@map("conversation_members")
 }
 
 model Message {
   id               Int         @id @default(autoincrement())
   uuid             String      @unique @default(uuid()) @db.Char(36)
-  conversationId   Int
-  senderId         Int
-  replyToMessageId Int?
+  conversation_id   Int
+  sender_id         Int
+  reply_to_message_id Int?
   message          String?     @db.Text
-  messageType      MessageType @default(text)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime?
+  message_type      MessageType @default(text)
+  created_at        DateTime    @default(now())
+  updated_at        DateTime?
 
-  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User            @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  replyToMessage Message?        @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
-  repliesToMe    Message[]       @relation("MessageReplies")
+  conversation   Conversation    @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender         User            @relation("MessageSender", fields: [sender_id], references: [id], onDelete: Cascade)
+  reply_to_message Message?        @relation("MessageReplies", fields: [reply_to_message_id], references: [id], onDelete: SetNull)
+  replies_to_me    Message[]       @relation("MessageReplies")
   files          MessageFile[]
-  messageStatus  MessageStatus[]
+  message_status  MessageStatus[]
 
   @@map("messages")
 }
@@ -222,29 +222,29 @@ model Message {
 model MessageFile {
   id         Int      @id @default(autoincrement())
   uuid       String   @unique @default(uuid()) @db.Char(36)
-  messageId  Int
-  filePath   String   @db.VarChar(255)
-  fileType   String?  @db.VarChar(50)
-  fileSize   BigInt?
-  uploadedAt DateTime @default(now())
+  message_id  Int
+  file_path   String   @db.VarChar(255)
+  file_type   String?  @db.VarChar(50)
+  file_size   BigInt?
+  uploaded_at DateTime @default(now())
 
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  message Message @relation(fields: [message_id], references: [id], onDelete: Cascade)
 
-  @@map("messageFiles")
+  @@map("message_files")
 }
 
 model MessageStatus {
   id        Int                   @id @default(autoincrement())
   uuid      String                @unique @default(uuid()) @db.Char(36)
-  messageId Int
-  userId    Int
+  message_id Int
+  user_id    Int
   status    MessageDeliveryStatus @default(sent)
-  updatedAt DateTime              @updatedAt
+  updated_at DateTime              @updatedAt
 
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message Message @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@map("messageStatus")
+  @@map("message_status")
 }
 
 model Board {
@@ -252,14 +252,14 @@ model Board {
   uuid        String         @unique @default(uuid()) @db.Char(36)
   name        String         @db.VarChar(150)
   description String?        @db.Text
-  createdBy   Int
+  created_by   Int
   status      ActiveInactive @default(active)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
 
-  creator      User          @relation("BoardCreator", fields: [createdBy], references: [id], onDelete: NoAction)
+  creator      User          @relation("BoardCreator", fields: [created_by], references: [id], onDelete: NoAction)
   lists        List[]
-  activityLogs ActivityLog[]
+  activity_logs ActivityLog[]
 
   @@map("boards")
 }
@@ -267,15 +267,15 @@ model Board {
 model List {
   id        Int      @id @default(autoincrement())
   uuid      String   @unique @default(uuid()) @db.Char(36)
-  boardId   Int
+  board_id   Int
   name      String   @db.VarChar(100)
   position  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  board        Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  board        Board         @relation(fields: [board_id], references: [id], onDelete: Cascade)
   tasks        Task[]
-  activityLogs ActivityLog[]
+  activity_logs ActivityLog[]
 
   @@map("lists")
 }
@@ -283,26 +283,26 @@ model List {
 model Task {
   id          Int          @id @default(autoincrement())
   uuid        String       @unique @default(uuid()) @db.Char(36)
-  listId      Int
+  list_id      Int
   title       String       @db.VarChar(255)
   description String?      @db.Text
-  dueDate     DateTime?
+  due_date     DateTime?
   priority    TaskPriority @default(medium)
   position    Int          @default(0)
-  createdBy   Int
-  assignedTo  Int?
+  created_by   Int
+  assigned_to  Int?
   tags        String?      @db.Text
   status      TaskStatus   @default(pending)
   active      YN           @default(Y)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
 
-  list         List          @relation(fields: [listId], references: [id], onDelete: Cascade)
-  creator      User          @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: NoAction)
-  assignee     User?         @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: NoAction)
+  list         List          @relation(fields: [list_id], references: [id], onDelete: Cascade)
+  creator      User          @relation("TaskCreator", fields: [created_by], references: [id], onDelete: NoAction)
+  assignee     User?         @relation("TaskAssignee", fields: [assigned_to], references: [id], onDelete: NoAction)
   comments     Comment[]
   attachments  Attachment[]
-  activityLogs ActivityLog[]
+  activity_logs ActivityLog[]
 
   @@map("tasks")
 }
@@ -310,13 +310,13 @@ model Task {
 model Comment {
   id        Int      @id @default(autoincrement())
   uuid      String   @unique @default(uuid()) @db.Char(36)
-  taskId    Int
-  userId    Int
+  task_id    Int
+  user_id    Int
   content   String   @db.Text
-  createdAt DateTime @default(now())
+  created_at DateTime @default(now())
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
@@ -324,14 +324,14 @@ model Comment {
 model Attachment {
   id         Int      @id @default(autoincrement())
   uuid       String   @unique @default(uuid()) @db.Char(36)
-  taskId     Int
-  fileName   String?  @db.VarChar(255)
-  filePath   String?  @db.VarChar(255)
-  uploadedBy Int
-  uploadedAt DateTime @default(now())
+  task_id     Int
+  file_name   String?  @db.VarChar(255)
+  file_path   String?  @db.VarChar(255)
+  uploaded_by Int
+  uploaded_at DateTime @default(now())
 
-  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  uploader User @relation("AttachmentUploader", fields: [uploadedBy], references: [id], onDelete: NoAction)
+  task     Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  uploader User @relation("AttachmentUploader", fields: [uploaded_by], references: [id], onDelete: NoAction)
 
   @@map("attachments")
 }
@@ -339,32 +339,32 @@ model Attachment {
 model ActivityLog {
   id        Int      @id @default(autoincrement())
   uuid      String   @unique @default(uuid()) @db.Char(36)
-  boardId   Int?
-  listId    Int?
-  taskId    Int?
-  userId    Int
+  board_id   Int?
+  list_id    Int?
+  task_id    Int?
+  user_id    Int
   action    String   @db.VarChar(255)
-  createdAt DateTime @default(now())
+  created_at DateTime @default(now())
 
-  board Board? @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  list  List?  @relation(fields: [listId], references: [id], onDelete: Cascade)
-  task  Task?  @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  board Board? @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  list  List?  @relation(fields: [list_id], references: [id], onDelete: Cascade)
+  task  Task?  @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@map("activityLogs")
+  @@map("activity_logs")
 }
 
 model Category {
   id        Int            @id @default(autoincrement())
   uuid      String         @unique @default(uuid()) @db.Char(36)
   name      String         @db.VarChar(255)
-  parentId  Int?
+  parent_id  Int?
   status    ActiveInactive @default(active)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
 
-  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  subcategories Category[] @relation("CategoryHierarchy")
+  parent        Category?  @relation("CategoryHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  sub_categories Category[] @relation("CategoryHierarchy")
 
   @@map("categories")
 }
@@ -372,12 +372,14 @@ model Category {
 model RoleModule {
   id        BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
   role      RoleModuleRole
-  moduleId  BigInt         @db.UnsignedBigInt
-  createdAt DateTime?
-  updatedAt DateTime?
+  module_id  BigInt         @db.UnsignedBigInt
+  created_at DateTime?
+  updated_at DateTime?
 
-  @@unique([role, moduleId], map: "role_module_unique")
-  @@index([moduleId], map: "role_modules_moduleId_foreign")
+  @@unique([role, module_id], map: "role_module_unique")
+  @@index([module_id], map: "role_modules_moduleId_foreign")
   @@index([role], map: "role_modules_role_index")
   @@map("role_modules")
 }
+
+

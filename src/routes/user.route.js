@@ -18,3 +18,4 @@ router.route("/getList").get(isAuthenticated, getUserList);
 router.route("/export/csv").get(isAuthenticated, exportUsersCSV);
 
 export default router;
+

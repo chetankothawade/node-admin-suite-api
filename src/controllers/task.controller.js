@@ -87,12 +87,12 @@ export const updateTaskStatus = async (req, res) => {
 
 /**
  * @desc Get board with nested lists and tasks
- * @route GET /task/board/:boardId/tasks
+ * @route GET /task/board/:board_id/tasks
  * @access Authenticated
  */
 export const getTaskList = async (req, res) => {
   try {
-    const board = await taskService.getTaskList(req.params.boardId);
+    const board = await taskService.getTaskList(req.params.board_id);
     return sendResponse(res, 200, true, "board.tasks.success", { board });
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Get Task List Error:" });
@@ -112,3 +112,5 @@ export const updateTaskList = async (req, res) => {
     return handleError(req, res, error, { logPrefix: "Update Task List Error:" });
   }
 };
+
+

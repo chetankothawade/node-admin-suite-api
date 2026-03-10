@@ -23,3 +23,5 @@ export class BaseRepository {
     return this.model.create(payload, options);
   }
 }
+
+

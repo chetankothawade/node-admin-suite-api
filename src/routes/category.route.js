@@ -24,3 +24,5 @@ router.route("/get/:uuid").get(isAuthenticated, getCategory);
 router.route("/status/:uuid").put(isAuthenticated, updateCategoryStatus);
 router.route("/getList").get(isAuthenticated, getCategoryList);
 export default router;
+
+

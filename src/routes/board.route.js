@@ -19,5 +19,7 @@ router.route("/update/:uuid").put(isAuthenticated, updateBoard);
 router.route("/delete/:uuid").delete(isAuthenticated, deleteBoard);
 router.route("/get/:uuid").get(isAuthenticated, getBoard);
 router.route("/status/:uuid").put(isAuthenticated, updateBoardStatus);
-router.route("/:userId/lists").get(isAuthenticated, getBoardLists);
+router.route("/:user_id/lists").get(isAuthenticated, getBoardLists);
 export default router;
+
+

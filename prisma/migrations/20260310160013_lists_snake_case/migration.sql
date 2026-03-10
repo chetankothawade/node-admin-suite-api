@@ -1,0 +1,5 @@
+ALTER TABLE lists
+  CHANGE boardId board_id INT NOT NULL,
+  CHANGE createdAt created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CHANGE updatedAt updated_at DATETIME(3) NOT NULL;
+

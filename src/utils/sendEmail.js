@@ -18,7 +18,7 @@ class EmailService {
         // Layout defaults (always available in templates)
         this.layoutVars = {
             siteName: process.env.APP_NAME || "MySite",
-            baseUrl: process.env.CLIENT_ORIGIN || "",
+            base_url: process.env.CLIENT_ORIGIN || "",
         };
 
         // Template cache
@@ -32,8 +32,8 @@ class EmailService {
         const files = await fs.readdir(templatesDir);
         for (const file of files) {
             if (file.endsWith(".html")) {
-                const filePath = path.join(templatesDir, file);
-                const source = await fs.readFile(filePath, "utf8");
+                const file_path = path.join(templatesDir, file);
+                const source = await fs.readFile(file_path, "utf8");
                 const template = handlebars.compile(source);
                 const templateKey = path.parse(file).name;
                 this.templateCache.set(templateKey, template);
@@ -63,8 +63,8 @@ class EmailService {
 
         // Merge layout vars + templateVars
         const html = layoutTemplate({
-            ...this.layoutVars,   // siteName, siteLogo, baseUrl
-            ...templateVars,      // name, resetUrl
+            ...this.layoutVars,   // siteName, siteLogo, base_url
+            ...templateVars,      // name, reset_url
             body: bodyHtml,
         });
 
@@ -85,7 +85,7 @@ class EmailService {
                 attachments,
             });
 
-            console.log(`📧 Email sent to ${to}: ${info.messageId}`);
+            console.log(`📧 Email sent to ${to}: ${info.message_id}`);
             return info;
         } catch (err) {
             console.error("Email sending failed:", err);
@@ -103,3 +103,5 @@ const templatesDir = path.join(process.cwd(), "emails", "templates");
 emailService.preloadTemplates(templatesDir).catch((err) => {
     console.error("Failed to preload email templates:", err);
 });
+
+

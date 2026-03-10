@@ -5,11 +5,11 @@ import { getUserModuleAccess} from '../utils/permission.js';
 
 const router = express.Router();
 
-// GET /api/access/:userId
-router.get("/:userId", async (req, res) => {
+// GET /api/access/:user_id
+router.get("/:user_id", async (req, res) => {
   try {
-    const { userId } = req.params;
-    const access = await getUserModuleAccess(userId);
+    const { user_id } = req.params;
+    const access = await getUserModuleAccess(user_id);
     return res.json({ success: true, access });
   } catch (err) {
     console.error(err);
@@ -41,3 +41,5 @@ export default router;
 //   });
 
 // export default router;
+
+

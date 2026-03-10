@@ -1,23 +1,14 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { listModule, createModule, updateModule, deleteModule, getModule, moduleStatus, getModuleList, getAllModuleList, toggleUserPermission } from "../controllers/module.controller.js";
-import prisma from "../lib/prisma.js";
+import { moduleService } from "../services/module.service.js";
 
 const router = express.Router();
 
 // 🔹 Get all modules with submodules
 router.route("/").get(isAuthenticated, async (req, res) => {
     try {
-        const modules = await prisma.module.findMany({
-            where: { parentId: 0, status: "active" },
-            orderBy: { seqNo: "asc" },
-            include: {
-                children: {
-                    where: { status: "active" },
-                    orderBy: { seqNo: "asc" },
-                },
-            },
-        });
+        const modules = await moduleService.getActiveModuleTree();
         res.json({ success: true, modules });
     } catch (err) {
         console.error("Error fetching modules:", err);
@@ -37,4 +28,6 @@ router.route("/getAllList").get(isAuthenticated, getAllModuleList);
 router.route("/toggleUserPermission").post(isAuthenticated, toggleUserPermission);
 
 export default router;
+
+
 

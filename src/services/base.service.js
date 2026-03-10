@@ -10,3 +10,5 @@ export class BaseService {
     this.throwError(501, `${moduleName}.${methodName}.not_implemented`);
   }
 }
+
+

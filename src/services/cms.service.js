@@ -1,11 +1,11 @@
-import prisma from "../lib/prisma.js";
+import { cmsRepository } from "../repositories/cms.repository.js";
 import { Prisma } from "@prisma/client";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 
 export const cmsService = {
   async listCms(query) {
-    const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
+    const { page, limit, offset, sorted_field, sorted_by } = getPaginationParams(query);
     const search = query.search || "";
 
     const whereClause = search
@@ -15,12 +15,12 @@ export const cmsService = {
       : {};
 
     const [count, rows] = await Promise.all([
-      prisma.cms.count({ where: whereClause }),
-      prisma.cms.findMany({
+      cmsRepository.count(whereClause),
+      cmsRepository.findMany({
         where: whereClause,
         take: limit,
         skip: offset,
-        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+        orderBy: { [sorted_field]: sorted_by.toLowerCase() },
       }),
     ]);
 
@@ -32,7 +32,7 @@ export const cmsService = {
     if (!title || !content) {
       BaseService.throwError(400, "validation.missing_fields");
     }
-    return prisma.cms.create({ data: { title, content } });
+    return cmsRepository.create({ title, content });
   },
 
   async updateCms(uuid, payload) {
@@ -41,40 +41,34 @@ export const cmsService = {
       BaseService.throwError(400, "validation.missing_fields");
     }
 
-    const cms = await prisma.cms.findFirst({ where: { uuid } });
+    const cms = await cmsRepository.findByUuid(uuid);
     if (!cms) BaseService.throwError(404, "error.not_found");
 
-    return prisma.cms.update({
-      where: { id: cms.id },
-      data: { title, content },
-    });
+    return cmsRepository.updateById(cms.id, { title, content });
   },
 
   async deleteCms(uuid) {
-    const cms = await prisma.cms.findFirst({ where: { uuid } });
+    const cms = await cmsRepository.findByUuid(uuid);
     if (!cms) BaseService.throwError(404, "error.not_found");
-    await prisma.cms.delete({ where: { id: cms.id } });
+    await cmsRepository.deleteById(cms.id);
   },
 
   async getCms(uuid) {
-    const cms = await prisma.cms.findFirst({
-      where: { uuid },
-      select: {
+    const cms = await cmsRepository.findByUuid(uuid, {
         id: true,
         uuid: true,
         title: true,
         content: true,
         status: true,
-        createdAt: true,
-      },
+        created_at: true,
     });
     if (!cms) BaseService.throwError(404, "error.not_found");
     return cms;
   },
 
   async getCms1(uuid) {
-    const result = await prisma.$queryRaw(
-      Prisma.sql`SELECT id, uuid, title, content, status, createdAt FROM cms WHERE uuid = ${uuid} LIMIT 1`
+    const result = await cmsRepository.queryRaw(
+      Prisma.sql`SELECT id, uuid, title, content, status, created_at FROM cms WHERE uuid = ${uuid} LIMIT 1`
     );
 
     const cms = result?.[0];
@@ -85,12 +79,11 @@ export const cmsService = {
   async cmsStatus(uuid, status) {
     if (!status) BaseService.throwError(400, "validation.missing_fields");
 
-    const cms = await prisma.cms.findFirst({ where: { uuid } });
+    const cms = await cmsRepository.findByUuid(uuid);
     if (!cms) BaseService.throwError(404, "error.not_found");
 
-    return prisma.cms.update({
-      where: { id: cms.id },
-      data: { status },
-    });
+    return cmsRepository.updateById(cms.id, { status });
   },
 };
+
+

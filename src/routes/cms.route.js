@@ -13,3 +13,5 @@ router.route("/get/:uuid").get(isAuthenticated, getCms);
 router.route("/status/:uuid").put(isAuthenticated, cmsStatus);
 
 export default router;
+
+

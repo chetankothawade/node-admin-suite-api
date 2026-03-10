@@ -1,27 +1,27 @@
-import prisma from "../lib/prisma.js";
+import { taskRepository } from "../repositories/task.repository.js";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 
 export const taskService = {
   async listTasks(query) {
-    const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
+    const { page, limit, offset, sorted_field, sorted_by } = getPaginationParams(query);
     const search = query.search || "";
-    const listId = query.listId ? Number(query.listId) : null;
+    const list_id = query.list_id ? Number(query.list_id) : null;
 
     const whereClause = {
       ...(search && {
         OR: [{ title: { contains: search } }, { description: { contains: search } }],
       }),
-      ...(listId && { listId }),
+      ...(list_id && { list_id }),
     };
 
     const [count, rows] = await Promise.all([
-      prisma.task.count({ where: whereClause }),
-      prisma.task.findMany({
+      taskRepository.count(whereClause),
+      taskRepository.findMany({
         where: whereClause,
         take: limit,
         skip: offset,
-        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+        orderBy: { [sorted_field]: sorted_by.toLowerCase() },
         include: {
           list: { select: { id: true, name: true } },
           creator: { select: { id: true, name: true, email: true } },
@@ -34,59 +34,51 @@ export const taskService = {
   },
 
   async createTask(payload, user) {
-    const { listId, title, description, dueDate, priority, assignedTo, tags, position } = payload;
-    if (!listId || !title) BaseService.throwError(400, "validation.missing_fields");
+    const { list_id, title, description, due_date, priority, assigned_to, tags, position } = payload;
+    if (!list_id || !title) BaseService.throwError(400, "validation.missing_fields");
 
-    return prisma.task.create({
-      data: {
-        listId: Number(listId),
+    return taskRepository.create({
+        list_id: Number(list_id),
         title,
         description,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        due_date: due_date ? new Date(due_date) : null,
         priority,
-        assignedTo: assignedTo ? Number(assignedTo) : null,
+        assigned_to: assigned_to ? Number(assigned_to) : null,
         tags,
         position,
-        createdBy: user?.id || null,
-      },
+        created_by: user?.id || null,
     });
   },
 
   async updateTask(uuid, payload) {
-    const task = await prisma.task.findFirst({ where: { uuid } });
+    const task = await taskRepository.findByUuid(uuid);
     if (!task) BaseService.throwError(404, "error.not_found");
 
     const data = {
       ...payload,
-      ...(payload.listId !== undefined ? { listId: Number(payload.listId) } : {}),
-      ...(payload.createdBy !== undefined ? { createdBy: Number(payload.createdBy) } : {}),
-      ...(payload.assignedTo !== undefined ? { assignedTo: payload.assignedTo ? Number(payload.assignedTo) : null } : {}),
-      ...(payload.dueDate !== undefined ? { dueDate: payload.dueDate ? new Date(payload.dueDate) : null } : {}),
+      ...(payload.list_id !== undefined ? { list_id: Number(payload.list_id) } : {}),
+      ...(payload.created_by !== undefined ? { created_by: Number(payload.created_by) } : {}),
+      ...(payload.assigned_to !== undefined ? { assigned_to: payload.assigned_to ? Number(payload.assigned_to) : null } : {}),
+      ...(payload.due_date !== undefined ? { due_date: payload.due_date ? new Date(payload.due_date) : null } : {}),
     };
 
-    return prisma.task.update({
-      where: { id: task.id },
-      data,
-    });
+    return taskRepository.updateById(task.id, data);
   },
 
   async deleteTask(uuid) {
-    const task = await prisma.task.findFirst({ where: { uuid } });
+    const task = await taskRepository.findByUuid(uuid);
     if (!task) BaseService.throwError(404, "error.not_found");
-    await prisma.task.delete({ where: { id: task.id } });
+    await taskRepository.deleteById(task.id);
   },
 
   async getTask(uuid) {
-    const task = await prisma.task.findFirst({
-      where: { uuid },
-      include: {
+    const task = await taskRepository.findByUuid(uuid, {
         list: { select: { id: true, name: true } },
         creator: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
         comments: true,
         attachments: true,
-        activityLogs: true,
-      },
+        activity_logs: true,
     });
 
     if (!task) BaseService.throwError(404, "error.not_found");
@@ -96,19 +88,14 @@ export const taskService = {
   async updateTaskStatus(uuid, status) {
     if (!status) BaseService.throwError(400, "validation.missing_fields");
 
-    const task = await prisma.task.findFirst({ where: { uuid } });
+    const task = await taskRepository.findByUuid(uuid);
     if (!task) BaseService.throwError(404, "error.not_found");
 
-    return prisma.task.update({
-      where: { id: task.id },
-      data: { status },
-    });
+    return taskRepository.updateById(task.id, { status });
   },
 
-  async getTaskList(boardId) {
-    const board = await prisma.board.findUnique({
-      where: { id: Number(boardId) },
-      include: {
+  async getTaskList(board_id) {
+    const board = await taskRepository.findBoardById(Number(board_id), {
         lists: {
           include: {
             tasks: {
@@ -119,7 +106,6 @@ export const taskService = {
             },
           },
         },
-      },
     });
 
     if (!board) BaseService.throwError(404, "error.not_found");
@@ -127,15 +113,14 @@ export const taskService = {
   },
 
   async updateTaskList(payload) {
-    const { taskId, listId } = payload;
-    if (!taskId || !listId) BaseService.throwError(400, "validation.missing_fields");
+    const { task_id, list_id } = payload;
+    if (!task_id || !list_id) BaseService.throwError(400, "validation.missing_fields");
 
-    const task = await prisma.task.findUnique({ where: { id: Number(taskId) } });
+    const task = await taskRepository.findById(Number(task_id));
     if (!task) BaseService.throwError(404, "error.not_found");
 
-    return prisma.task.update({
-      where: { id: Number(taskId) },
-      data: { listId: Number(listId) },
-    });
+    return taskRepository.updateById(Number(task_id), { list_id: Number(list_id) });
   },
 };
+
+

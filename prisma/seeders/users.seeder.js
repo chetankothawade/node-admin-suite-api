@@ -50,3 +50,5 @@ export async function seedUsers(prisma) {
 
   console.log("users.seeder: done");
 }
+
+

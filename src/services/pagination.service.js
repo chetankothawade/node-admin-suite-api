@@ -1,16 +1,16 @@
 export const getPaginationParams = (query, defaults = {}) => {
   const defaultPage = defaults.page || 1;
   const defaultLimit = defaults.limit || 10;
-  const defaultSortField = defaults.sortedField || "createdAt";
-  const defaultSortOrder = defaults.sortedBy || "DESC";
+  const defaultSortField = defaults.sorted_field || "created_at";
+  const defaultSortOrder = defaults.sorted_by || "DESC";
 
   const page = parseInt(query.page, 10) || defaultPage;
   const limit = parseInt(query.limit, 10) || defaultLimit;
   const offset = (page - 1) * limit;
-  const sortedField = query.sortedField || defaultSortField;
-  const sortedBy = query.sortedBy?.toUpperCase() === "ASC" ? "ASC" : defaultSortOrder;
+  const sorted_field = query.sorted_field || defaultSortField;
+  const sorted_by = query.sorted_by?.toUpperCase() === "ASC" ? "ASC" : defaultSortOrder;
 
-  return { page, limit, offset, sortedField, sortedBy };
+  return { page, limit, offset, sorted_field, sorted_by };
 };
 
 export const buildPaginationMeta = (total, page, limit) => {
@@ -24,3 +24,5 @@ export const buildPaginationMeta = (total, page, limit) => {
     prevPage: page > 1 ? page - 1 : null,
   };
 };
+
+

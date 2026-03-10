@@ -79,31 +79,33 @@ const chatFilter = (req, file, cb) => {
 export const uploadImage = multer({
     storage: storage('uploads/images'),
     fileFilter: imageFilter,
-    limits: { fileSize: 5 * 1024 * 1024 }
+    limits: { file_size: 5 * 1024 * 1024 }
 });
 
 export const uploadDoc = multer({
     storage: storage('uploads/docs'),
     fileFilter: docFilter,
-    limits: { fileSize: 10 * 1024 * 1024 }
+    limits: { file_size: 10 * 1024 * 1024 }
 });
 
 export const uploadMixed = multer({
     storage: storage('uploads'),
     fileFilter: mixedFilter,
-    limits: { fileSize: 10 * 1024 * 1024 }
+    limits: { file_size: 10 * 1024 * 1024 }
 });
 
 export const uploadEditor = multer({
     storage: storage('uploads/editor'),
     fileFilter: editorFilter,
-    limits: { fileSize: 10 * 1024 * 1024 }
+    limits: { file_size: 10 * 1024 * 1024 }
 });
 
 export const uploadChat = multer({
     storage: storage('uploads/chat'),
     fileFilter: chatFilter,
-    limits: { fileSize: 20 * 1024 * 1024 }
+    limits: { file_size: 20 * 1024 * 1024 }
 });
 
 export default { uploadImage, uploadDoc, uploadMixed, uploadEditor, uploadChat };
+
+

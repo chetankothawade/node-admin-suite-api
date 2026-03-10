@@ -1,10 +1,10 @@
-import prisma from "../lib/prisma.js";
+import { boardRepository } from "../repositories/board.repository.js";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 
 export const boardService = {
   async listBoards(query) {
-    const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
+    const { page, limit, offset, sorted_field, sorted_by } = getPaginationParams(query);
     const search = query.search || "";
 
     const whereClause = search
@@ -17,12 +17,12 @@ export const boardService = {
       : {};
 
     const [count, rows] = await Promise.all([
-      prisma.board.count({ where: whereClause }),
-      prisma.board.findMany({
+      boardRepository.count(whereClause),
+      boardRepository.findMany({
         where: whereClause,
         take: limit,
         skip: offset,
-        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+        orderBy: { [sorted_field]: sorted_by.toLowerCase() },
         include: {
           creator: { select: { id: true, name: true, email: true } },
           lists: { select: { id: true, name: true } },
@@ -35,24 +35,19 @@ export const boardService = {
 
   async createBoard(payload, user) {
     const { name, description } = payload;
-    const createdBy = user?.id || payload.createdBy;
-    if (!name || !createdBy) {
+    const created_by = user?.id || payload.created_by;
+    if (!name || !created_by) {
       BaseService.throwError(400, "validation.missing_fields");
     }
 
-    return prisma.board.create({
-      data: { name, description, createdBy },
-    });
+    return boardRepository.create({ name, description, created_by });
   },
 
   async getBoard(uuid) {
-    const board = await prisma.board.findFirst({
-      where: { uuid },
-      include: {
+    const board = await boardRepository.findByUuid(uuid, {
         creator: { select: { id: true, name: true, email: true } },
         lists: { select: { id: true, name: true, position: true } },
-        activityLogs: { select: { id: true, action: true, createdAt: true } },
-      },
+        activity_logs: { select: { id: true, action: true, created_at: true } },
     });
 
     if (!board) BaseService.throwError(404, "error.not_found");
@@ -61,40 +56,36 @@ export const boardService = {
 
   async updateBoard(uuid, payload) {
     const { name, description, status } = payload;
-    const board = await prisma.board.findFirst({ where: { uuid } });
+    const board = await boardRepository.findByUuid(uuid);
     if (!board) BaseService.throwError(404, "error.not_found");
 
-    return prisma.board.update({
-      where: { id: board.id },
-      data: {
+    return boardRepository.updateById(board.id, {
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
         ...(status ? { status } : {}),
-      },
     });
   },
 
   async deleteBoard(uuid) {
-    const board = await prisma.board.findFirst({ where: { uuid } });
+    const board = await boardRepository.findByUuid(uuid);
     if (!board) BaseService.throwError(404, "error.not_found");
-    await prisma.board.delete({ where: { id: board.id } });
+    await boardRepository.deleteById(board.id);
   },
 
   async updateBoardStatus(uuid, status) {
     if (!status) BaseService.throwError(400, "validation.missing_fields");
 
-    const board = await prisma.board.findFirst({ where: { uuid } });
+    const board = await boardRepository.findByUuid(uuid);
     if (!board) BaseService.throwError(404, "error.not_found");
 
-    return prisma.board.update({
-      where: { id: board.id },
-      data: { status },
-    });
+    return boardRepository.updateById(board.id, { status });
   },
 
-  async getBoardLists(userId) {
-    const board = await prisma.board.findUnique({ where: { id: Number(userId) } });
+  async getBoardLists(user_id) {
+    const board = await boardRepository.findById(Number(user_id));
     if (!board) BaseService.throwError(404, "error.not_found");
     return board;
   },
 };
+
+

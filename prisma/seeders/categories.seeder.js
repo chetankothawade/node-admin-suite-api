@@ -11,7 +11,7 @@ export async function seedCategories(prisma) {
       update: {
         name: category.name,
         status: category.status,
-        parentId: null,
+        parent_id: null,
       },
       create: category,
     });
@@ -19,3 +19,5 @@ export async function seedCategories(prisma) {
 
   console.log("categories.seeder: done");
 }
+
+

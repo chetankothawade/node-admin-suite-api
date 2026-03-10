@@ -24,7 +24,9 @@ router.route("/get/:uuid").get(isAuthenticated, getTask);
 router.route("/status/:uuid").put(isAuthenticated, updateTaskStatus);
 
 // Additional task-board specific routes
-router.route("/board/:boardId/tasks").get(isAuthenticated, getTaskList);
+router.route("/board/:board_id/tasks").get(isAuthenticated, getTaskList);
 router.route("/update-task-list").put(isAuthenticated, updateTaskList);
 
 export default router;
+
+

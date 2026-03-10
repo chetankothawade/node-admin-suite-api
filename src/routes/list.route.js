@@ -18,3 +18,5 @@ router.route("/delete/:uuid").delete(isAuthenticated, deleteList);
 router.route("/get/:uuid").get(isAuthenticated, getList);
 
 export default router;
+
+

@@ -1,27 +1,27 @@
-import prisma from "../lib/prisma.js";
+import { categoryRepository } from "../repositories/category.repository.js";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 
 export const categoryService = {
   async listCategories({ params, query }) {
-    const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
+    const { page, limit, offset, sorted_field, sorted_by } = getPaginationParams(query);
     const search = query.search || "";
-    const parentId = params.id ? Number(params.id) : null;
+    const parent_id = params.id ? Number(params.id) : null;
 
     const where = {
-      parentId,
+      parent_id,
       ...(search && { name: { contains: search } }),
     };
 
     const [count, rows] = await Promise.all([
-      prisma.category.count({ where }),
-      prisma.category.findMany({
+      categoryRepository.count(where),
+      categoryRepository.findMany({
         where,
         take: limit,
         skip: offset,
-        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+        orderBy: { [sorted_field]: sorted_by.toLowerCase() },
         include: {
-          subcategories: true,
+          sub_categories: true,
           parent: true,
         },
       }),
@@ -34,39 +34,31 @@ export const categoryService = {
   },
 
   async createCategory(payload) {
-    const { name, parentId } = payload;
+    const { name, parent_id } = payload;
     if (!name) BaseService.throwError(400, "validation.missing_fields");
 
-    return prisma.category.create({
-      data: { name, parentId: parentId ? Number(parentId) : null },
-    });
+    return categoryRepository.create({ name, parent_id: parent_id ? Number(parent_id) : null });
   },
 
   async updateCategory(uuid, payload) {
-    const { name, parentId } = payload;
-    const category = await prisma.category.findFirst({ where: { uuid } });
+    const { name, parent_id } = payload;
+    const category = await categoryRepository.findByUuid(uuid);
     if (!category) BaseService.throwError(404, "error.not_found");
 
-    return prisma.category.update({
-      where: { id: category.id },
-      data: {
+    return categoryRepository.updateById(category.id, {
         ...(name ? { name } : {}),
-        ...(parentId !== undefined ? { parentId: parentId === null ? null : Number(parentId) } : {}),
-      },
+        ...(parent_id !== undefined ? { parent_id: parent_id === null ? null : Number(parent_id) } : {}),
     });
   },
 
   async deleteCategory(uuid) {
-    const category = await prisma.category.findFirst({ where: { uuid } });
+    const category = await categoryRepository.findByUuid(uuid);
     if (!category) BaseService.throwError(404, "error.not_found");
-    await prisma.category.delete({ where: { id: category.id } });
+    await categoryRepository.deleteById(category.id);
   },
 
   async getCategory(uuid) {
-    const category = await prisma.category.findFirst({
-      where: { uuid },
-      include: { subcategories: true },
-    });
+    const category = await categoryRepository.findByUuid(uuid, { sub_categories: true });
 
     if (!category) BaseService.throwError(404, "error.not_found");
     return category;
@@ -75,20 +67,19 @@ export const categoryService = {
   async updateCategoryStatus(uuid, status) {
     if (status === undefined) BaseService.throwError(400, "validation.missing_fields");
 
-    const category = await prisma.category.findFirst({ where: { uuid } });
+    const category = await categoryRepository.findByUuid(uuid);
     if (!category) BaseService.throwError(404, "error.not_found");
 
-    return prisma.category.update({
-      where: { id: category.id },
-      data: { status },
-    });
+    return categoryRepository.updateById(category.id, { status });
   },
 
   getCategoryList() {
-    return prisma.category.findMany({
+    return categoryRepository.findMany({
       where: {
-        OR: [{ parentId: 0 }, { parentId: null }],
+        OR: [{ parent_id: 0 }, { parent_id: null }],
       },
     });
   },
 };
+
+

@@ -1,0 +1,4 @@
+ALTER TABLE permissions
+  CHANGE createdAt created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CHANGE updatedAt updated_at DATETIME(3) NOT NULL;
+

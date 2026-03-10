@@ -3,19 +3,19 @@ export async function seedRoles(prisma) {
     where: { name: "Dashboard" },
     update: {
       status: "active",
-      isPermission: "Y",
-      isSubModule: "N",
-      parentId: 0,
-      seqNo: 1,
+      is_permission: "Y",
+      is_sub_module: "N",
+      parent_id: 0,
+      seq_no: 1,
     },
     create: {
       name: "Dashboard",
       url: "/dashboard",
       icon: "dashboard",
-      seqNo: 1,
-      parentId: 0,
-      isPermission: "Y",
-      isSubModule: "N",
+      seq_no: 1,
+      parent_id: 0,
+      is_permission: "Y",
+      is_sub_module: "N",
       status: "active",
     },
   });
@@ -27,15 +27,15 @@ export async function seedRoles(prisma) {
   for (const permission of permissions) {
     await prisma.modulePermission.upsert({
       where: {
-        moduleId_permissionId: {
-          moduleId: dashboard.id,
-          permissionId: permission.id,
+        module_id_permission_id: {
+          module_id: dashboard.id,
+          permission_id: permission.id,
         },
       },
       update: {},
       create: {
-        moduleId: dashboard.id,
-        permissionId: permission.id,
+        module_id: dashboard.id,
+        permission_id: permission.id,
       },
     });
   }
@@ -47,8 +47,8 @@ export async function seedRoles(prisma) {
 
   const roleModuleRows = [];
   for (const moduleRecord of modules) {
-    roleModuleRows.push({ role: "super_admin", moduleId: BigInt(moduleRecord.id) });
-    roleModuleRows.push({ role: "admin", moduleId: BigInt(moduleRecord.id) });
+    roleModuleRows.push({ role: "super_admin", module_id: BigInt(moduleRecord.id) });
+    roleModuleRows.push({ role: "admin", module_id: BigInt(moduleRecord.id) });
   }
 
   for (const row of roleModuleRows) {
@@ -56,16 +56,18 @@ export async function seedRoles(prisma) {
       where: {
         role_module_unique: {
           role: row.role,
-          moduleId: row.moduleId,
+          module_id: row.module_id,
         },
       },
       update: {},
       create: {
         role: row.role,
-        moduleId: row.moduleId,
+        module_id: row.module_id,
       },
     });
   }
 
   console.log("roles.seeder: done");
 }
+
+
