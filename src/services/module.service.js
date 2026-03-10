@@ -1,33 +1,33 @@
-import { Op } from "sequelize";
-import db from "../models/index.js";
+import prisma from "../lib/prisma.js";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 
-const { sequelize, Module, Permission, ModulePermission, UserPermission } = db;
-
 export const moduleService = {
   async listModule({ params, query }) {
-    const moduleId = params.id || 0;
+    const moduleId = Number(params.id || 0);
     const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
     const search = query.search || "";
 
     const whereClause = {
       parentId: moduleId > 0 ? moduleId : 0,
       ...(search && {
-        [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { url: { [Op.like]: `%${search}%` } },
-          { icon: { [Op.like]: `%${search}%` } },
+        OR: [
+          { name: { contains: search } },
+          { url: { contains: search } },
+          { icon: { contains: search } },
         ],
       }),
     };
 
-    const { count, rows } = await Module.findAndCountAll({
-      where: whereClause,
-      limit,
-      offset,
-      order: [[sortedField, sortedBy]],
-    });
+    const [count, rows] = await Promise.all([
+      prisma.module.count({ where: whereClause }),
+      prisma.module.findMany({
+        where: whereClause,
+        take: limit,
+        skip: offset,
+        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+      }),
+    ]);
 
     return {
       module: rows || [],
@@ -41,23 +41,21 @@ export const moduleService = {
       BaseService.throwError(400, "validation.missing_fields");
     }
 
-    return sequelize.transaction(async (t) => {
-      const newModule = await Module.create(
-        { name, url, icon, seqNo, isPermission, isSubModule, parentId },
-        { transaction: t }
-      );
+    return prisma.$transaction(async (tx) => {
+      const newModule = await tx.module.create({
+        data: { name, url, icon, seqNo, isPermission, isSubModule, parentId: Number(parentId) },
+      });
 
       if (isSubModule === "N" && isPermission === "Y") {
-        const permissions = await Permission.findAll({
-          where: { action: ["create", "read", "update", "delete", "approve"] },
-          transaction: t,
+        const permissions = await tx.permission.findMany({
+          where: { action: { in: ["create", "read", "update", "delete", "approve"] } },
         });
 
-        const mappings = permissions.map((p) => ({
-          moduleId: newModule.id,
-          permissionId: p.id,
-        }));
-        await ModulePermission.bulkCreate(mappings, { transaction: t });
+        if (permissions.length > 0) {
+          await tx.modulePermission.createMany({
+            data: permissions.map((p) => ({ moduleId: newModule.id, permissionId: p.id })),
+          });
+        }
       }
 
       return newModule;
@@ -70,54 +68,57 @@ export const moduleService = {
       BaseService.throwError(400, "validation.missing_fields");
     }
 
-    return sequelize.transaction(async (t) => {
-      const module = await Module.findOne({ where: { uuid }, transaction: t });
+    return prisma.$transaction(async (tx) => {
+      const module = await tx.module.findFirst({ where: { uuid } });
       if (!module) {
         BaseService.throwError(404, "error.not_found");
       }
 
-      Object.assign(module, { name, url, icon, seqNo, isPermission, isSubModule, parentId });
-      await module.save({ transaction: t });
+      const updatedModule = await tx.module.update({
+        where: { id: module.id },
+        data: { name, url, icon, seqNo, isPermission, isSubModule, parentId: parentId !== undefined ? Number(parentId) : module.parentId },
+      });
 
-      const existingMappings = await ModulePermission.findAll({
+      const existingMappings = await tx.modulePermission.findMany({
         where: { moduleId: module.id },
-        transaction: t,
       });
 
       if (existingMappings.length === 0 && isPermission === "Y") {
-        const permissions = await Permission.findAll({
-          where: { action: ["create", "read", "update", "delete", "approve"] },
-          transaction: t,
+        const permissions = await tx.permission.findMany({
+          where: { action: { in: ["create", "read", "update", "delete", "approve"] } },
         });
 
-        const mappings = permissions.map((p) => ({
-          moduleId: module.id,
-          permissionId: p.id,
-        }));
-        await ModulePermission.bulkCreate(mappings, { transaction: t });
+        if (permissions.length > 0) {
+          await tx.modulePermission.createMany({
+            data: permissions.map((p) => ({ moduleId: module.id, permissionId: p.id })),
+          });
+        }
       }
 
       if (existingMappings.length > 0 && isPermission === "N") {
-        await ModulePermission.destroy({ where: { moduleId: module.id }, transaction: t });
+        await tx.modulePermission.deleteMany({ where: { moduleId: module.id } });
       }
 
-      return module;
+      return updatedModule;
     });
   },
 
   async deleteModule(uuid) {
-    const module = await Module.findOne({ where: { uuid } });
+    const module = await prisma.module.findFirst({ where: { uuid } });
     if (!module) {
       BaseService.throwError(404, "error.not_found");
     }
-    await module.destroy();
+    await prisma.module.delete({ where: { id: module.id } });
   },
 
   async getModule(uuid) {
-    const module = await Module.findOne({
+    const module = await prisma.module.findFirst({
       where: { uuid },
-      include: [{ model: Module, as: "parent", attributes: ["id", "name"] }],
+      include: {
+        parent: { select: { id: true, name: true } },
+      },
     });
+
     if (!module) {
       BaseService.throwError(404, "error.not_found");
     }
@@ -129,28 +130,37 @@ export const moduleService = {
       BaseService.throwError(400, "validation.missing_fields");
     }
 
-    const module = await Module.findOne({ where: { uuid } });
+    const module = await prisma.module.findFirst({ where: { uuid } });
     if (!module) {
       BaseService.throwError(404, "error.not_found");
     }
 
-    module.status = status;
-    await module.save();
-    return module;
+    return prisma.module.update({
+      where: { id: module.id },
+      data: { status },
+    });
   },
 
   getModuleList() {
-    return Module.findAll({ where: { parentId: 0, isSubModule: "Y" } });
+    return prisma.module.findMany({ where: { parentId: 0, isSubModule: "Y" } });
   },
 
   async getAllModuleList(query) {
     const userId = parseInt(query.userId, 10) || 5;
 
-    const allModules = await Module.findAll({
+    const allModules = await prisma.module.findMany({
       where: { status: "active" },
-      attributes: ["id", "name", "url", "icon", "seqNo", "isSubModule", "parentId", "isPermission"],
-      order: [["seqNo", "ASC"]],
-      raw: true,
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        icon: true,
+        seqNo: true,
+        isSubModule: true,
+        parentId: true,
+        isPermission: true,
+      },
+      orderBy: { seqNo: "asc" },
     });
 
     const parentMap = {};
@@ -171,22 +181,19 @@ export const moduleService = {
       }
     });
 
-    const permissions = await Permission.findAll({
+    const permissions = await prisma.permission.findMany({
       where: { status: "active" },
-      attributes: ["id", "action"],
-      order: [["id", "ASC"]],
-      raw: true,
+      select: { id: true, action: true },
+      orderBy: { id: "asc" },
     });
 
-    const modulePermissions = await ModulePermission.findAll({
-      attributes: ["id", "moduleId", "permissionId"],
-      raw: true,
+    const modulePermissions = await prisma.modulePermission.findMany({
+      select: { id: true, moduleId: true, permissionId: true },
     });
 
-    const userPermissions = await UserPermission.findAll({
+    const userPermissions = await prisma.userPermission.findMany({
       where: { userId },
-      attributes: ["id", "modulePermissionId"],
-      raw: true,
+      select: { id: true, modulePermissionId: true },
     });
 
     const modules = resultModules.map((mod) => ({
@@ -205,13 +212,27 @@ export const moduleService = {
   async toggleUserPermission(payload) {
     const { userId, modulePermissionId, isChecked } = payload;
     if (isChecked) {
-      await UserPermission.findOrCreate({
-        where: { userId, modulePermissionId },
-        defaults: { userId, modulePermissionId },
+      await prisma.userPermission.upsert({
+        where: {
+          userId_modulePermissionId: {
+            userId: Number(userId),
+            modulePermissionId: Number(modulePermissionId),
+          },
+        },
+        update: {},
+        create: {
+          userId: Number(userId),
+          modulePermissionId: Number(modulePermissionId),
+        },
       });
       return;
     }
 
-    await UserPermission.destroy({ where: { userId, modulePermissionId } });
+    await prisma.userPermission.deleteMany({
+      where: {
+        userId: Number(userId),
+        modulePermissionId: Number(modulePermissionId),
+      },
+    });
   },
 };

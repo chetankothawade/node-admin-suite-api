@@ -1,0 +1,383 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  user
+  admin
+  super_admin
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+}
+
+enum ActiveInactive {
+  active
+  inactive
+}
+
+enum YN {
+  Y
+  N
+}
+
+enum ConversationType {
+  direct
+  group
+}
+
+enum MessageType {
+  text
+  file
+}
+
+enum MessageDeliveryStatus {
+  sent
+  delivered
+  read
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+enum TaskStatus {
+  pending
+  completed
+  cancelled
+}
+
+enum RoleModuleRole {
+  super_admin
+  admin
+  user
+}
+
+model User {
+  id                  Int        @id @default(autoincrement())
+  uuid                String     @unique @default(uuid()) @db.Char(36)
+  name                String     @db.VarChar(100)
+  email               String     @unique @db.VarChar(150)
+  password            String     @db.VarChar(255)
+  phone               String?    @db.VarChar(20)
+  avatar              String?    @db.VarChar(255)
+  role                UserRole   @default(user)
+  status              UserStatus @default(active)
+  resetPasswordToken  String?
+  resetPasswordExpire DateTime?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  userPermissions      UserPermission[]
+  conversationMembers  ConversationMember[]
+  createdBoards        Board[]              @relation("BoardCreator")
+  createdTasks         Task[]               @relation("TaskCreator")
+  assignedTasks        Task[]               @relation("TaskAssignee")
+  comments             Comment[]
+  attachments          Attachment[]         @relation("AttachmentUploader")
+  activityLogs         ActivityLog[]
+  sentMessages         Message[]            @relation("MessageSender")
+  messageStatuses      MessageStatus[]
+  createdConversations Conversation[]       @relation("ConversationCreator")
+
+  @@map("users")
+}
+
+model Module {
+  id           Int            @id @default(autoincrement())
+  uuid         String         @unique @default(uuid()) @db.Char(36)
+  parentId     Int            @default(0)
+  name         String         @unique @db.VarChar(50)
+  url          String?        @db.VarChar(100)
+  icon         String?        @db.VarChar(100)
+  seqNo        Int?
+  isSubModule  YN             @default(N)
+  status       ActiveInactive @default(active)
+  isPermission YN             @default(N)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  parent            Module?            @relation("ModuleHierarchy", fields: [parentId], references: [id], onDelete: NoAction)
+  children          Module[]           @relation("ModuleHierarchy")
+  modulePermissions ModulePermission[]
+
+  @@map("modules")
+}
+
+model Permission {
+  id        Int            @id @default(autoincrement())
+  uuid      String         @unique @default(uuid()) @db.Char(36)
+  action    String
+  status    ActiveInactive @default(active)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  modulePermissions ModulePermission[]
+
+  @@map("permissions")
+}
+
+model ModulePermission {
+  id           Int      @id @default(autoincrement())
+  uuid         String   @unique @default(uuid()) @db.Char(36)
+  moduleId     Int
+  permissionId Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  module          Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  permission      Permission       @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  userPermissions UserPermission[]
+
+  @@unique([moduleId, permissionId], map: "unique_module_permission")
+  @@map("module_permissions")
+}
+
+model UserPermission {
+  id                 Int      @id @default(autoincrement())
+  uuid               String   @unique @default(uuid()) @db.Char(36)
+  userId             Int
+  modulePermissionId Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modulePermission ModulePermission @relation(fields: [modulePermissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, modulePermissionId], map: "unique_user_permission")
+  @@map("user_permissions")
+}
+
+model Cms {
+  id        Int            @id @default(autoincrement())
+  uuid      String         @unique @default(uuid()) @db.Char(36)
+  title     String         @unique @db.VarChar(100)
+  content   String         @db.Text
+  status    ActiveInactive @default(active)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("cms")
+}
+
+model Conversation {
+  id        Int              @id @default(autoincrement())
+  uuid      String           @unique @default(uuid()) @db.Char(36)
+  type      ConversationType @default(direct)
+  name      String?          @db.VarChar(255)
+  createdBy Int?
+  createdAt DateTime         @default(now())
+
+  creator  User?                @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  members  ConversationMember[]
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid()) @db.Char(36)
+  conversationId Int
+  userId         Int
+  joinedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("conversationMembers")
+}
+
+model Message {
+  id               Int         @id @default(autoincrement())
+  uuid             String      @unique @default(uuid()) @db.Char(36)
+  conversationId   Int
+  senderId         Int
+  replyToMessageId Int?
+  message          String?     @db.Text
+  messageType      MessageType @default(text)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime?
+
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User            @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyToMessage Message?        @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  repliesToMe    Message[]       @relation("MessageReplies")
+  files          MessageFile[]
+  messageStatus  MessageStatus[]
+
+  @@map("messages")
+}
+
+model MessageFile {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid()) @db.Char(36)
+  messageId  Int
+  filePath   String   @db.VarChar(255)
+  fileType   String?  @db.VarChar(50)
+  fileSize   BigInt?
+  uploadedAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("messageFiles")
+}
+
+model MessageStatus {
+  id        Int                   @id @default(autoincrement())
+  uuid      String                @unique @default(uuid()) @db.Char(36)
+  messageId Int
+  userId    Int
+  status    MessageDeliveryStatus @default(sent)
+  updatedAt DateTime              @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("messageStatus")
+}
+
+model Board {
+  id          Int            @id @default(autoincrement())
+  uuid        String         @unique @default(uuid()) @db.Char(36)
+  name        String         @db.VarChar(150)
+  description String?        @db.Text
+  createdBy   Int
+  status      ActiveInactive @default(active)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  creator      User          @relation("BoardCreator", fields: [createdBy], references: [id], onDelete: NoAction)
+  lists        List[]
+  activityLogs ActivityLog[]
+
+  @@map("boards")
+}
+
+model List {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Char(36)
+  boardId   Int
+  name      String   @db.VarChar(100)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board        Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+  activityLogs ActivityLog[]
+
+  @@map("lists")
+}
+
+model Task {
+  id          Int          @id @default(autoincrement())
+  uuid        String       @unique @default(uuid()) @db.Char(36)
+  listId      Int
+  title       String       @db.VarChar(255)
+  description String?      @db.Text
+  dueDate     DateTime?
+  priority    TaskPriority @default(medium)
+  position    Int          @default(0)
+  createdBy   Int
+  assignedTo  Int?
+  tags        String?      @db.Text
+  status      TaskStatus   @default(pending)
+  active      YN           @default(Y)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  list         List          @relation(fields: [listId], references: [id], onDelete: Cascade)
+  creator      User          @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: NoAction)
+  assignee     User?         @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: NoAction)
+  comments     Comment[]
+  attachments  Attachment[]
+  activityLogs ActivityLog[]
+
+  @@map("tasks")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Char(36)
+  taskId    Int
+  userId    Int
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid()) @db.Char(36)
+  taskId     Int
+  fileName   String?  @db.VarChar(255)
+  filePath   String?  @db.VarChar(255)
+  uploadedBy Int
+  uploadedAt DateTime @default(now())
+
+  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader User @relation("AttachmentUploader", fields: [uploadedBy], references: [id], onDelete: NoAction)
+
+  @@map("attachments")
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Char(36)
+  boardId   Int?
+  listId    Int?
+  taskId    Int?
+  userId    Int
+  action    String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  board Board? @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  list  List?  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  task  Task?  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activityLogs")
+}
+
+model Category {
+  id        Int            @id @default(autoincrement())
+  uuid      String         @unique @default(uuid()) @db.Char(36)
+  name      String         @db.VarChar(255)
+  parentId  Int?
+  status    ActiveInactive @default(active)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories Category[] @relation("CategoryHierarchy")
+
+  @@map("categories")
+}
+
+model RoleModule {
+  id        BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  role      RoleModuleRole
+  moduleId  BigInt         @db.UnsignedBigInt
+  createdAt DateTime?
+  updatedAt DateTime?
+
+  @@unique([role, moduleId], map: "role_module_unique")
+  @@index([moduleId], map: "role_modules_moduleId_foreign")
+  @@index([role], map: "role_modules_role_index")
+  @@map("role_modules")
+}

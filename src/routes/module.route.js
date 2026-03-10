@@ -1,26 +1,22 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { listModule, createModule, updateModule, deleteModule, getModule, moduleStatus, getModuleList, getAllModuleList, toggleUserPermission } from "../controllers/module.controller.js";
-import db from "../models/index.js";
-const { Module } = db;
+import prisma from "../lib/prisma.js";
 
 const router = express.Router();
 
 // 🔹 Get all modules with submodules
 router.route("/").get(isAuthenticated, async (req, res) => {
     try {
-        const modules = await Module.findAll({
+        const modules = await prisma.module.findMany({
             where: { parentId: 0, status: "active" },
-            order: [["seqNo", "ASC"]],
-            include: [
-                {
-                    model: Module,
-                    as: "children",
+            orderBy: { seqNo: "asc" },
+            include: {
+                children: {
                     where: { status: "active" },
-                    required: false,
-                    order: [["seqNo", "ASC"]],
+                    orderBy: { seqNo: "asc" },
                 },
-            ],
+            },
         });
         res.json({ success: true, modules });
     } catch (err) {

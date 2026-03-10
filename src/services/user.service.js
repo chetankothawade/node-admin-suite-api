@@ -1,9 +1,11 @@
-import { Op } from "sequelize";
+import bcrypt from "bcryptjs";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 import { userRepository } from "../repositories/user.repository.js";
 import fs from "fs";
 import path from "path";
+
+const SALT_ROUNDS = 10;
 
 const USER_LIST_ATTRIBUTES = ["id", "uuid", "name", "email", "phone", "avatar", "role", "status", "createdAt"];
 const USER_DETAIL_ATTRIBUTES = ["id", "uuid", "name", "email", "phone", "avatar", "role", "createdAt", "status"];
@@ -44,13 +46,13 @@ const removeAvatarFromDisk = (avatarUrl) => {
 
 const buildUserListWhereClause = ({ currentUserId, search = "" }) => ({
   // Exclude suspended users and current logged-in user from admin list endpoint.
-  status: { [Op.ne]: "suspended" },
-  id: { [Op.ne]: currentUserId },
+  status: { not: "suspended" },
+  id: { not: currentUserId },
   ...(search && {
-    [Op.or]: [
-      { name: { [Op.like]: `%${search}%` } },
-      { email: { [Op.like]: `%${search}%` } },
-      { phone: { [Op.like]: `%${search}%` } },
+    OR: [
+      { name: { contains: search } },
+      { email: { contains: search } },
+      { phone: { contains: search } },
     ],
   }),
 });
@@ -86,13 +88,15 @@ export const userService = {
     }
 
     const avatar = file ? buildAvatarUrl(req, file.filename) : "";
+    const hashedPassword = await bcrypt.hash(body.password, SALT_ROUNDS);
+
     return userRepository.create({
       name: body.name,
       email: body.email,
       phone: body.phone,
       avatar,
       role: body.role,
-      password: body.password,
+      password: hashedPassword,
     });
   },
 
@@ -114,16 +118,19 @@ export const userService = {
     if (file) {
       // Replace avatar atomically: delete old file only when a new one arrives.
       removeAvatarFromDisk(user.avatar);
-      user.avatar = buildAvatarUrl(req, file.filename);
     }
+    const avatar = file ? buildAvatarUrl(req, file.filename) : user.avatar;
 
-    user.name = body.name;
-    user.email = body.email;
-    user.phone = body.phone;
-    user.role = body.role;
-    await user.save();
-
-    return user;
+    return userRepository.model.update({
+      where: { id: user.id },
+      data: {
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        role: body.role,
+        avatar,
+      },
+    });
   },
 
   async deleteUser(uuid) {
@@ -134,10 +141,14 @@ export const userService = {
 
     // Soft-delete strategy:
     // keep row for audit/history, prevent login/listing via suspended status.
-    user.status = "suspended";
-    // Prefix email so unique constraint does not block future re-registration.
-    user.email = `deleted_${user.email}`;
-    await user.save();
+    await userRepository.model.update({
+      where: { id: user.id },
+      data: {
+        status: "suspended",
+        // Prefix email so unique constraint does not block future re-registration.
+        email: `deleted_${user.email}`,
+      },
+    });
   },
 
   async getUser(uuid) {
@@ -159,9 +170,10 @@ export const userService = {
     }
 
     // Existing UI toggles status using provided value as current state.
-    user.status = payload.status === "active" ? "inactive" : "active";
-    await user.save();
-    return user;
+    return userRepository.model.update({
+      where: { id: user.id },
+      data: { status: payload.status === "active" ? "inactive" : "active" },
+    });
   },
 
   async getMe(userId) {
@@ -181,6 +193,6 @@ export const userService = {
     if (!users || users.length === 0) {
       BaseService.throwError(404, "No users found to export.");
     }
-    return users.map((u) => u.toJSON());
+    return users;
   },
 };

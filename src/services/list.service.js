@@ -1,31 +1,31 @@
-import { Op } from "sequelize";
-import db from "../models/index.js";
+import prisma from "../lib/prisma.js";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
-
-const { List, Board, Task, ActivityLog } = db;
 
 export const listService = {
   async listLists(query) {
     const { page, limit, offset, sortedField, sortedBy } = getPaginationParams(query);
     const search = query.search || "";
-    const boardId = query.boardId || null;
+    const boardId = query.boardId ? Number(query.boardId) : null;
 
     const whereClause = {
       ...(boardId && { boardId }),
-      ...(search && { name: { [Op.like]: `%${search}%` } }),
+      ...(search && { name: { contains: search } }),
     };
 
-    const { count, rows } = await List.findAndCountAll({
-      where: whereClause,
-      limit,
-      offset,
-      order: [[sortedField, sortedBy]],
-      include: [
-        { model: Board, as: "board", attributes: ["id", "name"] },
-        { model: Task, as: "tasks", attributes: ["id", "title", "status"] },
-      ],
-    });
+    const [count, rows] = await Promise.all([
+      prisma.list.count({ where: whereClause }),
+      prisma.list.findMany({
+        where: whereClause,
+        take: limit,
+        skip: offset,
+        orderBy: { [sortedField]: sortedBy.toLowerCase() },
+        include: {
+          board: { select: { id: true, name: true } },
+          tasks: { select: { id: true, title: true, status: true } },
+        },
+      }),
+    ]);
 
     return { lists: rows, pagination: buildPaginationMeta(count || 0, page, limit) };
   },
@@ -34,39 +34,45 @@ export const listService = {
     const { boardId, name, position } = payload;
     if (!boardId || !name) BaseService.throwError(400, "validation.missing_fields");
 
-    const board = await Board.findByPk(boardId);
+    const board = await prisma.board.findUnique({ where: { id: Number(boardId) } });
     if (!board) BaseService.throwError(404, "error.board_not_found");
 
-    return List.create({ boardId, name, position });
+    return prisma.list.create({
+      data: { boardId: Number(boardId), name, position: position ?? 0 },
+    });
   },
 
   async getList(uuid) {
-    const list = await List.findOne({
+    const list = await prisma.list.findFirst({
       where: { uuid },
-      include: [
-        { model: Board, as: "board", attributes: ["id", "name"] },
-        { model: Task, as: "tasks", attributes: ["id", "title", "status", "position"] },
-        { model: ActivityLog, as: "activityLogs", attributes: ["id", "action", "createdAt"] },
-      ],
+      include: {
+        board: { select: { id: true, name: true } },
+        tasks: { select: { id: true, title: true, status: true, position: true } },
+        activityLogs: { select: { id: true, action: true, createdAt: true } },
+      },
     });
+
     if (!list) BaseService.throwError(404, "error.not_found");
     return list;
   },
 
   async updateList(uuid, payload) {
     const { name, position } = payload;
-    const list = await List.findOne({ where: { uuid } });
+    const list = await prisma.list.findFirst({ where: { uuid } });
     if (!list) BaseService.throwError(404, "error.not_found");
 
-    if (name) list.name = name;
-    if (position !== undefined) list.position = position;
-    await list.save();
-    return list;
+    return prisma.list.update({
+      where: { id: list.id },
+      data: {
+        ...(name ? { name } : {}),
+        ...(position !== undefined ? { position } : {}),
+      },
+    });
   },
 
   async deleteList(uuid) {
-    const list = await List.findOne({ where: { uuid } });
+    const list = await prisma.list.findFirst({ where: { uuid } });
     if (!list) BaseService.throwError(404, "error.not_found");
-    await list.destroy();
+    await prisma.list.delete({ where: { id: list.id } });
   },
 };

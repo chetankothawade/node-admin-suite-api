@@ -59,9 +59,11 @@ export const handleError = (
   { logPrefix = "Controller error:", fallbackMessage = "error.internal", validationMapper } = {}
 ) => {
   // Validation errors are sent as an array so UI can show field-level messages.
-  if (error?.name === "SequelizeValidationError") {
+  if (error?.name === "PrismaClientValidationError") {
     const mapValidation = validationMapper || ((err) => req.__(err.message));
-    const messages = error.errors.map(mapValidation);
+    const messages = Array.isArray(error.errors)
+      ? error.errors.map(mapValidation)
+      : [req.__(error.message)];
     return sendResponse(res, 422, false, messages);
   }
 

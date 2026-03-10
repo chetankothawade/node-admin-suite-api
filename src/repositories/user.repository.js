@@ -1,51 +1,78 @@
-import { Op } from "sequelize";
-import db from "../models/index.js";
-import { BaseRepository } from "./base.repository.js";
+import prisma from "../lib/prisma.js";
 
-const { User } = db;
-
-class UserRepository extends BaseRepository {
+class UserRepository {
   constructor() {
-    super(User);
+    this.model = prisma.user;
   }
 
   findByUuid(uuid, attributes = undefined) {
-    return this.findOne({
+    return this.model.findFirst({
       where: { uuid },
-      ...(attributes ? { attributes } : {}),
+      ...(attributes ? { select: this.buildSelect(attributes) } : {}),
     });
   }
 
   findByEmail(email) {
-    return this.findOne({ where: { email } });
+    return this.model.findUnique({ where: { email } });
   }
 
   findByEmailExcludingId(email, excludedUserId) {
-    return this.findOne({
+    return this.model.findFirst({
       where: {
         email,
-        id: { [Op.ne]: excludedUserId },
+        id: { not: excludedUserId },
       },
     });
   }
 
   listUsers({ where, attributes, limit, offset, order }) {
-    return this.findAndCountAll({ where, attributes, limit, offset, order });
+    const orderBy = Array.isArray(order) && order.length > 0
+      ? { [order[0][0]]: String(order[0][1]).toLowerCase() }
+      : { createdAt: "desc" };
+
+    return Promise.all([
+      this.model.count({ where }),
+      this.model.findMany({
+        where,
+        ...(attributes ? { select: this.buildSelect(attributes) } : {}),
+        take: limit,
+        skip: offset,
+        orderBy,
+      }),
+    ]).then(([count, rows]) => ({ count, rows }));
   }
 
   listAdmins(attributes) {
-    return this.findAll({
-      where: { role: "admin", status: { [Op.ne]: "suspended" } },
-      attributes,
+    return this.model.findMany({
+      where: { role: "admin", status: { not: "suspended" } },
+      ...(attributes ? { select: this.buildSelect(attributes) } : {}),
     });
   }
 
   listForCsv(attributes) {
-    return this.findAll({
-      attributes,
-      where: { status: { [Op.ne]: "suspended" } },
-      order: [["createdAt", "DESC"]],
+    return this.model.findMany({
+      where: { status: { not: "suspended" } },
+      ...(attributes ? { select: this.buildSelect(attributes) } : {}),
+      orderBy: { createdAt: "desc" },
     });
+  }
+
+  findByPk(id, options = {}) {
+    return this.model.findUnique({
+      where: { id },
+      ...(options.attributes ? { select: this.buildSelect(options.attributes) } : {}),
+    });
+  }
+
+  create(payload) {
+    return this.model.create({ data: payload });
+  }
+
+  buildSelect(attributes) {
+    return attributes.reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {});
   }
 }
 

@@ -1,12 +1,27 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { Op } from "sequelize";
-import db from "../models/index.js";
+import prisma from "../lib/prisma.js";
 import { BaseService } from "./base.service.js";
 import { emailService } from "../utils/sendEmail.js";
 import { generateToken } from "../utils/token.js";
 
-const { User } = db;
+const SALT_ROUNDS = 10;
+
+const withPasswordSelect = {
+  id: true,
+  uuid: true,
+  name: true,
+  email: true,
+  password: true,
+  phone: true,
+  avatar: true,
+  role: true,
+  status: true,
+  resetPasswordToken: true,
+  resetPasswordExpire: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const authService = {
   async register(body) {
@@ -15,12 +30,15 @@ export const authService = {
       BaseService.throwError(400, "auth.register.fields_required");
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       BaseService.throwError(409, "auth.register.user_exists");
     }
 
-    const newUser = await User.create({ name, email, password, role });
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const newUser = await prisma.user.create({
+      data: { name, email, password: hashedPassword, role },
+    });
     const token = generateToken(newUser);
 
     return {
@@ -41,12 +59,15 @@ export const authService = {
       BaseService.throwError(400, "auth.login.fields_required");
     }
 
-    const user = await User.scope("withPassword").findOne({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: withPasswordSelect,
+    });
     if (!user) {
       BaseService.throwError(404, "auth.login.user_not_found");
     }
 
-    const isPasswordMatch = await user.comparePassword(password);
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       BaseService.throwError(401, "auth.login.incorrect_credentials");
     }
@@ -75,7 +96,7 @@ export const authService = {
       BaseService.throwError(400, "auth.forgot_password.email_required");
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       BaseService.throwError(404, "auth.forgot_password.user_not_found");
     }
@@ -83,9 +104,13 @@ export const authService = {
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-    user.resetPasswordToken = resetTokenHash;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
-    await user.save();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetTokenHash,
+        resetPasswordExpire: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
 
     const baseUrl =
       user.role === "admin" ? process.env.FRONTEND_ADMIN_URL : process.env.FRONTEND_USER_URL;
@@ -105,22 +130,27 @@ export const authService = {
     }
 
     const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
-    const user = await User.scope("withPassword").findOne({
+    const user = await prisma.user.findFirst({
       where: {
         resetPasswordToken: resetTokenHash,
-        resetPasswordExpire: { [Op.gt]: Date.now() },
+        resetPasswordExpire: { gt: new Date() },
       },
+      select: withPasswordSelect,
     });
 
     if (!user) {
       BaseService.throwError(400, "auth.reset_password.invalid_or_expired");
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    user.resetPasswordToken = null;
-    user.resetPasswordExpire = null;
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpire: null,
+      },
+    });
   },
 
   logout(user) {
