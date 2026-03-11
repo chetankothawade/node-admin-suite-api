@@ -1,0 +1,40 @@
+<h2 style="margin-top:0;color:#2c3e50;">Verify Your Email Address</h2>
+
+<p>Hello <strong>{{name}}</strong>,</p>
+
+<p>
+  Thank you for signing up for <strong>{{siteName}}</strong>.
+  To complete your registration, please verify your email address by clicking the button below.
+</p>
+
+<div style="text-align:center;margin:30px 0;">
+  <a href="{{verificationUrl}}" style="
+background:linear-gradient(135deg,#1e88e5,#42a5f5);
+color:#ffffff;
+padding:12px 28px;
+border-radius:8px;
+font-size:15px;
+font-weight:600;
+text-decoration:none;
+display:inline-block;
+box-shadow:0 5px 12px rgba(0,0,0,0.15);
+">
+    Verify Email
+  </a>
+</div>
+
+<p>
+  This verification link will expire in <strong>{{expiryTime}}</strong> for security reasons.
+</p>
+
+<p>
+  If you did not create an account with {{siteName}}, please ignore this email.
+</p>
+
+<p style="margin-top:20px;">
+  If the button above does not work, copy and paste the following link into your browser:
+</p>
+
+<p style="word-break:break-all;color:#3498db;">
+  {{verificationUrl}}
+</p>

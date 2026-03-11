@@ -8,7 +8,7 @@ export const generateToken = (user) => {
     let expiresIn = process.env.JWT_EXPIRES_IN || "7d";
 
     // Different config per role
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role === "super_admin") {
         secret = process.env.ADMIN_SECRET_KEY || process.env.SECRET_KEY;
         expiresIn = process.env.ADMIN_JWT_EXPIRES_IN || "1d";
     }
@@ -19,7 +19,7 @@ export const generateToken = (user) => {
 export const verifyToken = (token, role = null) => {
     try {
         let secret = process.env.SECRET_KEY;
-        if (role === "admin") {
+        if (role === "admin" || role === "super_admin") {
             secret = process.env.ADMIN_SECRET_KEY || process.env.SECRET_KEY;
         }
         return jwt.verify(token, secret);
