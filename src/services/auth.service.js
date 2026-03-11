@@ -106,8 +106,7 @@ export const authService = {
       reset_password_expire: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-    const base_url =
-      user.role === "admin" ? process.env.FRONTEND_ADMIN_URL : process.env.FRONTEND_USER_URL;
+    const base_url = user.role === "admin" ? process.env.FRONTEND_ADMIN_URL : process.env.FRONTEND_USER_URL;
     const reset_url = `${base_url}/reset-password/${resetToken}`;
 
     await emailService.send("forgotPassword", {
