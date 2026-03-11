@@ -517,27 +517,6 @@
       ]
     },
     {
-      "name": "Access",
-      "item": [
-        {
-          "name": "GET /api/v1/access/:user_id",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{api_base_url}}/access/{{user_id}}",
-              "host": [
-                "{{api_base_url}}"
-              ],
-              "path": [
-                "access",
-                "{{user_id}}"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "Module",
       "item": [
         {

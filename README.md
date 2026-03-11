@@ -31,7 +31,6 @@ Express + Prisma (MySQL) backend for authentication, user management, access con
 ## Mounted Route Groups
 - `/api/v1` (auth routes)
 - `/api/v1/user`
-- `/api/v1/access`
 - `/api/v1/module`
 - `/api/v1/user-permissions`
 - `/api/v1/role-modules`

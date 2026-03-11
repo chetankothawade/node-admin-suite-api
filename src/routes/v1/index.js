@@ -2,7 +2,6 @@ import express from "express";
 
 import authRoute from "../auth.route.js";
 import userRoute from "../user.route.js";
-import accessRoute from "../access.route.js";
 import moduleRoute from "../module.route.js";
 import cmsRoute from "../cms.route.js";
 import editorRoute from "../editor.route.js";
@@ -16,7 +15,6 @@ const router = express.Router();
 // Auth routes are mounted at /api/v1/*
 router.use("/", authRoute);
 router.use("/user", userRoute);
-router.use("/access", accessRoute);
 router.use("/module", moduleRoute);
 router.use("/cms", cmsRoute);
 router.use("/editor", editorRoute);

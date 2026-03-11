@@ -160,8 +160,8 @@ export const userPermissionService = {
 
 
   /**
-  async getUserModuleAccess(userId) {
    * Get user module access
+   * Returns an object mapping module names to arrays of permission actions the user has for that module, based on role and user-specific permissions
    */
   async getUserModuleAccess(userId) {
     const user = await this.resolveUser(userId, { id: true, role: true });
