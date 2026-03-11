@@ -26,6 +26,3 @@ router.route("/status/:uuid").put(isAuthenticated, moduleStatus);
 router.route("/getList").get(isAuthenticated, getModuleList);
 
 export default router;
-
-
-
