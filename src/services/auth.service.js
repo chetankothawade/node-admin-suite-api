@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { authRepository } from "../repositories/auth.repository.js";
 import { BaseService } from "./base.service.js";
 import { emailService } from "../utils/sendEmail.js";
-import { generateToken } from "../utils/token.js";
+import { generateToken, generateEmailVerificationToken, verifyEmailVerificationToken } from "../utils/token.js";
 
 const SALT_ROUNDS = 10;
 
@@ -12,6 +12,8 @@ const withPasswordSelect = {
   uuid: true,
   name: true,
   email: true,
+  email_verified: true,
+  email_verified_at: true,
   password: true,
   phone: true,
   avatar: true,
@@ -21,6 +23,24 @@ const withPasswordSelect = {
   reset_password_expire: true,
   created_at: true,
   updated_at: true,
+};
+
+const getApiBaseUrl = () => process.env.APP_BASE_URL || process.env.API_BASE_URL || "http://localhost:8000";
+
+const sendVerificationEmail = async (user) => {
+  const token = generateEmailVerificationToken(user);
+  const verificationUrl = `${getApiBaseUrl()}/api/v1/verify-email/${token}`;
+  const expiryTime = process.env.EMAIL_VERIFICATION_EXPIRES_IN || "24 hours";
+
+  await emailService.send("verification", {
+    to: user.email,
+    subject: `Verify your email - ${process.env.APP_NAME || "NodeApp"}`,
+    templateVars: {
+      name: user.name,
+      verificationUrl,
+      expiryTime,
+    },
+  });
 };
 
 export const authService = {
@@ -36,19 +56,34 @@ export const authService = {
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const newUser = await authRepository.createUser({ name, email, password: hashedPassword, role });
-    const token = generateToken(newUser);
+    const newUser = await authRepository.createUser({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      email_verified: "N",
+      email_verified_at: null,
+    });
+
+    await emailService.send("welcome", {
+      to: newUser.email,
+      subject: `Welcome to ${process.env.APP_NAME || "NodeApp"}`,
+      templateVars: { name: newUser.name },
+    });
+
+    await sendVerificationEmail(newUser);
 
     return {
-      token,
       user: {
         id: newUser.id,
         uuid: newUser.uuid,
         name: newUser.name,
         email: newUser.email,
+        email_verified: newUser.email_verified,
         role: newUser.role,
         avatar: newUser.avatar || null,
       },
+      verification_sent: true,
     };
   },
 
@@ -68,9 +103,12 @@ export const authService = {
       BaseService.throwError(401, "auth.login.incorrect_credentials");
     }
 
-    // Keep existing behavior, including typo compatibility from legacy code.
-    if (user.staus === "inactive") {
+    if (user.status === "inactive") {
       BaseService.throwError(401, "auth.login.account_inactive");
+    }
+
+    if (user.email_verified !== "Y") {
+      BaseService.throwError(401, "auth.login.email_not_verified");
     }
 
     const token = generateToken(user);
@@ -81,6 +119,7 @@ export const authService = {
         uuid: user.uuid,
         name: user.name,
         email: user.email,
+        email_verified: user.email_verified,
         avatar: user.avatar || null,
         role: user.role,
       },
@@ -135,6 +174,48 @@ export const authService = {
       reset_password_token: null,
       reset_password_expire: null,
     });
+  },
+
+  async sendEmailVerification(body) {
+    const { email } = body || {};
+    if (!email) {
+      BaseService.throwError(400, "auth.verify_email.email_required");
+    }
+
+    const user = await authRepository.findUserByEmail(email, withPasswordSelect);
+    if (!user) {
+      BaseService.throwError(404, "auth.login.user_not_found");
+    }
+
+    if (user.email_verified === "Y") {
+      BaseService.throwError(400, "auth.verify_email.already_verified");
+    }
+
+    await sendVerificationEmail(user);
+    return { verification_sent: true };
+  },
+
+  async verifyEmail(token) {
+    const decoded = verifyEmailVerificationToken(token);
+    if (!decoded?.id) {
+      BaseService.throwError(400, "auth.verify_email.invalid_or_expired");
+    }
+
+    const user = await authRepository.findUserById(Number(decoded.id), withPasswordSelect);
+    if (!user || user.email !== decoded.email) {
+      BaseService.throwError(400, "auth.verify_email.invalid_or_expired");
+    }
+
+    if (user.email_verified === "Y") {
+      return { already_verified: true };
+    }
+
+    await authRepository.updateUserById(user.id, {
+      email_verified: "Y",
+      email_verified_at: new Date(),
+    });
+
+    return { verified: true };
   },
 
   logout(user) {

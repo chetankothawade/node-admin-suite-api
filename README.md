@@ -13,6 +13,10 @@ Express + Prisma (MySQL) backend for authentication, user management, access con
 
 ## Features
 - Auth: register, login, logout, forgot password, reset password
+- Email flow:
+  - register sends welcome email
+  - verification email is sent with tokenized link
+  - login requires verified email (`email_verified = Y`)
 - User management: profile, CRUD, status updates, CSV export
 - Access control:
   - module CRUD and active module tree
@@ -94,6 +98,9 @@ MAIL_USER=your_smtp_user
 MAIL_PASS=your_smtp_pass
 MAIL_FROM_EMAIL=no-reply@example.com
 MAIL_FROM_NAME=NodeApp
+EMAIL_VERIFICATION_SECRET=your_email_verification_secret
+EMAIL_VERIFICATION_EXPIRES_IN=24h
+APP_BASE_URL=http://localhost:8000
 
 baseUrl=http://localhost:3000
 ```
@@ -183,3 +190,6 @@ npm run postman:generate
 ## Notes
 - Keep `.env` secrets private and never commit production credentials.
 - `src/socket/server.js` contains Socket.io setup utilities; default app startup currently uses `index.js` + `app.js`.
+- New auth verification APIs:
+  - `POST /api/v1/send-email-verification`
+  - `GET /api/v1/verify-email/:token`

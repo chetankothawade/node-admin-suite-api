@@ -70,6 +70,40 @@ export const resetPassword = async (req, res) => {
 };
 
 /**
+ * @desc Send email verification link
+ * @route POST /send-email-verification
+ * @access Public
+ */
+export const sendEmailVerification = async (req, res) => {
+  try {
+    const data = await authService.sendEmailVerification(req.body);
+    return sendResponse(res, 200, true, "auth.verify_email.sent", data);
+  } catch (error) {
+    return handleError(req, res, error, {
+      logPrefix: "Send verification email error:",
+      fallbackMessage: "auth.verify_email.error",
+    });
+  }
+};
+
+/**
+ * @desc Verify email using verification token
+ * @route GET /verify-email/:token
+ * @access Public
+ */
+export const verifyEmail = async (req, res) => {
+  try {
+    const data = await authService.verifyEmail(req.params.token);
+    return sendResponse(res, 200, true, "auth.verify_email.success", data);
+  } catch (error) {
+    return handleError(req, res, error, {
+      logPrefix: "Verify email error:",
+      fallbackMessage: "auth.verify_email.error",
+    });
+  }
+};
+
+/**
  * @desc Logout current user (clear role-based cookie)
  * @route POST /logout
  * @access Authenticated

@@ -9,6 +9,10 @@ export class AuthRepository {
     return this.db.user.findUnique({ where: { email }, ...(select ? { select } : {}) });
   }
 
+  findUserById(id, select) {
+    return this.db.user.findUnique({ where: { id }, ...(select ? { select } : {}) });
+  }
+
   createUser(data) {
     return this.db.user.create({ data });
   }

@@ -68,6 +68,8 @@ model User {
   uuid                String     @unique @default(uuid()) @db.Char(36)
   name                String     @db.VarChar(100)
   email               String     @unique @db.VarChar(150)
+  email_verified       YN         @default(N)
+  email_verified_at    DateTime?
   password            String     @db.VarChar(255)
   phone               String?    @db.VarChar(20)
   avatar              String?    @db.VarChar(255)

@@ -28,4 +28,22 @@ export const verifyToken = (token, role = null) => {
     }
 };
 
+export const generateEmailVerificationToken = (user) => {
+    const payload = { id: user.id, email: user.email, type: "email_verification" };
+    const secret = process.env.EMAIL_VERIFICATION_SECRET || process.env.SECRET_KEY;
+    const expiresIn = process.env.EMAIL_VERIFICATION_EXPIRES_IN || "24h";
+    return jwt.sign(payload, secret, { expiresIn });
+};
+
+export const verifyEmailVerificationToken = (token) => {
+    try {
+        const secret = process.env.EMAIL_VERIFICATION_SECRET || process.env.SECRET_KEY;
+        const decoded = jwt.verify(token, secret);
+        if (decoded?.type !== "email_verification") return null;
+        return decoded;
+    } catch (error) {
+        return null;
+    }
+};
+
 
