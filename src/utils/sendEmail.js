@@ -85,7 +85,7 @@ class EmailService {
                 attachments,
             });
 
-            console.log(`📧 Email sent to ${to}: ${info.message_id}`);
+            console.log(`📧 Email sent to ${to}: ${info.message_id || ''}`);
             return info;
         } catch (err) {
             console.error("Email sending failed:", err);
