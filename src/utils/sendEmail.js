@@ -19,6 +19,8 @@ class EmailService {
         this.layoutVars = {
             siteName: process.env.APP_NAME || "MySite",
             base_url: process.env.CLIENT_ORIGIN || "",
+            year: new Date().getFullYear(),
+            logoSrc: "cid:app-logo",
         };
 
         // Template cache
@@ -61,10 +63,29 @@ class EmailService {
         const layoutTemplate = this.templateCache.get("layout");
         if (!layoutTemplate) throw new Error(`Layout template "layout" not found`);
 
+        const logoPath = path.join(process.cwd(), "emails", "templates", "logo.png");
+        let logoAttachment = null;
+        try {
+            await fs.access(logoPath);
+            logoAttachment = {
+                filename: "logo.png",
+                path: logoPath,
+                cid: "app-logo",
+            };
+        } catch {
+            // If logo file is missing, fallback to external URL from templateVars/env.
+        }
+
+        const mergedAttachments = [...(attachments || [])];
+        if (logoAttachment && !mergedAttachments.some((item) => item?.cid === "app-logo")) {
+            mergedAttachments.push(logoAttachment);
+        }
+
         // Merge layout vars + templateVars
         const html = layoutTemplate({
             ...this.layoutVars,   // siteName, siteLogo, base_url
             ...templateVars,      // name, reset_url
+            ...(logoAttachment ? { logoSrc: "cid:app-logo" } : {}),
             body: bodyHtml,
         });
 
@@ -82,7 +103,7 @@ class EmailService {
                 bcc,
                 subject: emailSubject,
                 html,
-                attachments,
+                attachments: mergedAttachments,
             });
 
             console.log(`📧 Email sent to ${to}: ${info.message_id || ''}`);

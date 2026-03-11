@@ -25,11 +25,17 @@ const withPasswordSelect = {
   updated_at: true,
 };
 
-const getApiBaseUrl = () => process.env.APP_BASE_URL || process.env.API_BASE_URL || "http://localhost:8000";
+const getFrontendBaseUrl = (role) => {
+  if (role === "admin" || role === "super_admin") {
+    return process.env.FRONTEND_ADMIN_URL || process.env.CLIENT_ORIGIN || "http://localhost:3000";
+  }
+  return process.env.FRONTEND_USER_URL || process.env.CLIENT_ORIGIN || "http://localhost:3000";
+};
 
 const sendVerificationEmail = async (user) => {
   const token = generateEmailVerificationToken(user);
-  const verificationUrl = `${getApiBaseUrl()}/api/v1/verify-email/${token}`;
+  const frontendBaseUrl = getFrontendBaseUrl(user.role);
+  const verificationUrl = `${frontendBaseUrl}/verify-email?token=${encodeURIComponent(token)}`;
   const expiryTime = process.env.EMAIL_VERIFICATION_EXPIRES_IN || "24 hours";
 
   await emailService.send("verification", {
