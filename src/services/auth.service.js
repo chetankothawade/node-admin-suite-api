@@ -40,7 +40,7 @@ const sendVerificationEmail = async (user) => {
 
   await emailService.send("verification", {
     to: user.email,
-    subject: `Verify your email - ${process.env.APP_NAME || "NodeApp"}`,
+    subject: `Verify your email - ${process.env.APP_NAME || "NACK"}`,
     templateVars: {
       name: user.name,
       verificationUrl,
@@ -73,7 +73,7 @@ export const authService = {
 
     await emailService.send("welcome", {
       to: newUser.email,
-      subject: `Welcome to ${process.env.APP_NAME || "NodeApp"}`,
+      subject: `Welcome to ${process.env.APP_NAME || "NACK"}`,
       templateVars: { name: newUser.name },
     });
 

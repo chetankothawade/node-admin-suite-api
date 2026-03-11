@@ -71,7 +71,7 @@ npm run dev
 Set these keys in `.env` (use secure values for non-local environments):
 
 ```env
-APP_NAME=NodeApp
+APP_NAME=NACK
 PORT=8000
 NODE_ENV=development
 
@@ -97,7 +97,7 @@ MAIL_PORT=2525
 MAIL_USER=your_smtp_user
 MAIL_PASS=your_smtp_pass
 MAIL_FROM_EMAIL=no-reply@example.com
-MAIL_FROM_NAME=NodeApp
+MAIL_FROM_NAME=NACK
 EMAIL_VERIFICATION_SECRET=your_email_verification_secret
 EMAIL_VERIFICATION_EXPIRES_IN=24h
 APP_BASE_URL=http://localhost:8000
