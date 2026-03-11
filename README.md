@@ -14,7 +14,10 @@ Express + Prisma (MySQL) backend for authentication, user management, access con
 ## Features
 - Auth: register, login, logout, forgot password, reset password
 - User management: profile, CRUD, status updates, CSV export
-- Access control: modules, permissions, user-level permission toggling
+- Access control:
+  - module CRUD and active module tree
+  - role-module matrix and toggle
+  - user-permission matrix, toggle, module-access, and sidebar menu
 - CMS CRUD and status management
 - Chat: conversations, messages, attachments, read status, unread counts
 - Category management with active/inactive states
@@ -30,6 +33,8 @@ Express + Prisma (MySQL) backend for authentication, user management, access con
 - `/api/v1/user`
 - `/api/v1/access`
 - `/api/v1/module`
+- `/api/v1/user-permissions`
+- `/api/v1/role-modules`
 - `/api/v1/cms`
 - `/api/v1/editor`
 - `/api/v1/chat`
@@ -98,6 +103,8 @@ baseUrl=http://localhost:3000
 Protected routes require:
 - Header: `Authorization: Bearer <token>`
 - Tokens are signed with `SECRET_KEY` (user) or `ADMIN_SECRET_KEY` (admin)
+- `user-permissions` routes are protected by `isAuthenticated`
+- `role-modules` routes should be called with authenticated admin/super-admin token
 
 ## File Uploads
 - Static URL root: `/uploads`
@@ -144,10 +151,35 @@ uploads/            local uploaded files
 
 ## API Testing
 - Import `postman_collection.json` into Postman.
+- Collection variables use:
+  - `base_url = http://localhost:8000`
+  - `api_base_url = {{base_url}}/api/v1`
+- Use `{{api_base_url}}/...` for all API endpoints, and `{{base_url}}/health` for health check.
+- Postman tests auto-set variables (`token`, `user_id`, `uuid`, `role`) from auth/user responses.
 - Rebuild collection after route changes:
 ```bash
 npm run postman:generate
 ```
+
+## Access Control Endpoints (v1)
+- Module
+  - `GET /module/`
+  - `GET /module/list`
+  - `GET /module/list/:id`
+  - `POST /module/create`
+  - `PUT /module/update/:uuid`
+  - `DELETE /module/delete/:uuid`
+  - `GET /module/get/:uuid`
+  - `PUT /module/status/:uuid`
+  - `GET /module/getList`
+- Role Modules
+  - `GET /role-modules/matrix`
+  - `POST /role-modules/toggle`
+- User Permissions
+  - `POST /user-permissions/toggle`
+  - `GET /user-permissions/getAll/:uuid`
+  - `GET /user-permissions/module-access/:uuid`
+  - `GET /user-permissions/side-menu`
 
 ## Notes
 - Keep `.env` secrets private and never commit production credentials.
