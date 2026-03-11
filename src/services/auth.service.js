@@ -43,6 +43,7 @@ export const authService = {
       token,
       user: {
         id: newUser.id,
+        uuid: newUser.uuid,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
@@ -77,6 +78,7 @@ export const authService = {
       token,
       user: {
         id: user.id,
+        uuid: user.uuid,
         name: user.name,
         email: user.email,
         avatar: user.avatar || null,
@@ -100,8 +102,8 @@ export const authService = {
     const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
     await authRepository.updateUserById(user.id, {
-        reset_password_token: resetTokenHash,
-        reset_password_expire: new Date(Date.now() + 15 * 60 * 1000),
+      reset_password_token: resetTokenHash,
+      reset_password_expire: new Date(Date.now() + 15 * 60 * 1000),
     });
 
     const base_url =
@@ -130,9 +132,9 @@ export const authService = {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     await authRepository.updateUserById(user.id, {
-        password: hashedPassword,
-        reset_password_token: null,
-        reset_password_expire: null,
+      password: hashedPassword,
+      reset_password_token: null,
+      reset_password_expire: null,
     });
   },
 

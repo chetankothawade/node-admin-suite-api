@@ -8,19 +8,37 @@ export class ModuleRepository {
   transaction(fn) { return this.db.$transaction(fn); }
   count(where) { return this.db.module.count({ where }); }
   findMany(params) { return this.db.module.findMany(params); }
-  findByUuid(uuid, include) { return this.db.module.findFirst({ where: { uuid }, ...(include ? { include } : {}) }); }
-  create(data) { return this.db.module.create({ data }); }
-  updateById(id, data) { return this.db.module.update({ where: { id }, data }); }
-  deleteById(id) { return this.db.module.delete({ where: { id } }); }
+  findByUuid(uuid, include) {
+    return this.db.module.findFirst({
+      where: { uuid },
+      ...(include ? { include } : {}),
+    });
+  }
 
-  findPermissions(where) { return this.db.permission.findMany({ where }); }
-  findModulePermissions(params) { return this.db.modulePermission.findMany(params); }
-  createModulePermissions(data) { return this.db.modulePermission.createMany({ data }); }
-  deleteModulePermissions(where) { return this.db.modulePermission.deleteMany({ where }); }
+  create(data, tx = this.db) { return tx.module.create({ data }); }
+  updateById(id, data, tx = this.db) { return tx.module.update({ where: { id }, data }); }
+  deleteById(id, tx = this.db) { return tx.module.delete({ where: { id } }); }
 
-  findUserPermissions(params) { return this.db.userPermission.findMany(params); }
-  upsertUserPermission(where, create) { return this.db.userPermission.upsert({ where, update: {}, create }); }
-  deleteUserPermissions(where) { return this.db.userPermission.deleteMany({ where }); }
+  findPermissions(where, tx = this.db) { return tx.permission.findMany({ where }); }
+  findModulePermissions(params, tx = this.db) { return tx.modulePermission.findMany(params); }
+  createModulePermissions(data, tx = this.db) { return tx.modulePermission.createMany({ data }); }
+  deleteModulePermissions(where, tx = this.db) { return tx.modulePermission.deleteMany({ where }); }
+  createRoleModule(data, tx = this.db) {
+    const moduleId = BigInt(data.module_id);
+    return tx.roleModule.upsert({
+      where: {
+        role_module_id: {
+          role: data.role,
+          module_id: moduleId,
+        },
+      },
+      update: {},
+      create: {
+        role: data.role,
+        module_id: moduleId,
+      },
+    });
+  }
 }
 
 export const moduleRepository = new ModuleRepository();

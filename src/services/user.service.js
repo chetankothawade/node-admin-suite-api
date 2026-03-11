@@ -100,12 +100,12 @@ export class UserService {
       status: { not: "suspended" },
       ...(search
         ? {
-            OR: [
-              { name: { contains: search } },
-              { email: { contains: search } },
-              { phone: { contains: search } },
-            ],
-          }
+          OR: [
+            { name: { contains: search } },
+            { email: { contains: search } },
+            { phone: { contains: search } },
+          ],
+        }
         : {}),
     };
 

@@ -1,6 +1,6 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
-import { listModule, createModule, updateModule, deleteModule, getModule, moduleStatus, getModuleList, getAllModuleList, toggleUserPermission } from "../controllers/module.controller.js";
+import { listModule, createModule, updateModule, deleteModule, getModule, moduleStatus, getModuleList} from "../controllers/module.controller.js";
 import { moduleService } from "../services/module.service.js";
 
 const router = express.Router();
@@ -24,8 +24,6 @@ router.route("/delete/:uuid").delete(isAuthenticated, deleteModule);
 router.route("/get/:uuid").get(isAuthenticated, getModule);
 router.route("/status/:uuid").put(isAuthenticated, moduleStatus);
 router.route("/getList").get(isAuthenticated, getModuleList);
-router.route("/getAllList").get(isAuthenticated, getAllModuleList);
-router.route("/toggleUserPermission").post(isAuthenticated, toggleUserPermission);
 
 export default router;
 

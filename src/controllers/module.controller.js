@@ -120,38 +120,5 @@ export const getModuleList = async (req, res) => {
   }
 };
 
-/**
- * @desc Get active module tree with permission matrix
- * @route GET /module/getAllList
- * @access Authenticated
- */
-export const getAllModuleList = async (req, res) => {
-  try {
-    const data = await moduleService.getAllModuleList(req.query);
-    return sendResponse(res, 200, true, "Module list retrieved successfully", data);
-  } catch (error) {
-    return handleError(req, res, error, {
-      logPrefix: "Get all module list error:",
-      validationMapper: (err) => err.message,
-    });
-  }
-};
-
-/**
- * @desc Toggle user permission mapping
- * @route POST /module/toggleUserPermission
- * @access Authenticated
- */
-export const toggleUserPermission = async (req, res) => {
-  try {
-    await moduleService.toggleUserPermission(req.body);
-    return sendResponse(res, 200, true, "User permission updated");
-  } catch (error) {
-    return handleError(req, res, error, {
-      logPrefix: "Toggle permission error:",
-      validationMapper: (err) => err.message,
-    });
-  }
-};
 
 

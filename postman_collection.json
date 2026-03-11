@@ -37,6 +37,22 @@
     {
       "key": "token_reset",
       "value": ""
+    },
+    {
+      "key": "role",
+      "value": "super_admin"
+    },
+    {
+      "key": "module_permission_id",
+      "value": "1"
+    },
+    {
+      "key": "server_url",
+      "value": "{{base_url}}"
+    },
+    {
+      "key": "api_base_url",
+      "value": "{{base_url}}/api/v1"
     }
   ],
   "item": [
@@ -79,17 +95,33 @@
               "raw": "{\n  \"name\": \"Admin\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\",\n  \"phone\": \"9876543210\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/register",
+              "raw": "{{api_base_url}}/register",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "register"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "const data = json.data || json;",
+                  "if (data && data.token) pm.collectionVariables.set(\"token\", data.token);",
+                  "const user = data && data.user ? data.user : null;",
+                  "if (user && user.id !== undefined && user.id !== null) pm.collectionVariables.set(\"user_id\", String(user.id));",
+                  "if (user && user.uuid) pm.collectionVariables.set(\"uuid\", user.uuid);",
+                  "if (user && user.role) pm.collectionVariables.set(\"role\", user.role);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "POST /api/v1/login",
@@ -106,17 +138,33 @@
               "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/login",
+              "raw": "{{api_base_url}}/login",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "login"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "const data = json.data || json;",
+                  "if (data && data.token) pm.collectionVariables.set(\"token\", data.token);",
+                  "const user = data && data.user ? data.user : null;",
+                  "if (user && user.id !== undefined && user.id !== null) pm.collectionVariables.set(\"user_id\", String(user.id));",
+                  "if (user && user.uuid) pm.collectionVariables.set(\"uuid\", user.uuid);",
+                  "if (user && user.role) pm.collectionVariables.set(\"role\", user.role);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "POST /api/v1/logout",
@@ -129,13 +177,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/logout",
+              "raw": "{{api_base_url}}/logout",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "logout"
               ]
             }
@@ -156,13 +202,11 @@
               "raw": "{\n  \"email\": \"admin@example.com\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/forgot-password",
+              "raw": "{{api_base_url}}/forgot-password",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "forgot-password"
               ]
             }
@@ -183,13 +227,11 @@
               "raw": "{\n  \"password\": \"newPassword123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/reset-password/{{token_reset}}",
+              "raw": "{{api_base_url}}/reset-password/{{token_reset}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "reset-password",
                 "{{token_reset}}"
               ]
@@ -212,18 +254,33 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/me",
+              "raw": "{{api_base_url}}/user/me",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "me"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "const data = json.data || json;",
+                  "const user = data && data.user ? data.user : null;",
+                  "if (user && user.id !== undefined && user.id !== null) pm.collectionVariables.set(\"user_id\", String(user.id));",
+                  "if (user && user.uuid) pm.collectionVariables.set(\"uuid\", user.uuid);",
+                  "if (user && user.role) pm.collectionVariables.set(\"role\", user.role);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "GET /api/v1/user/list",
@@ -236,13 +293,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/list?page=1&limit=10",
+              "raw": "{{api_base_url}}/user/list?page=1&limit=10",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "list"
               ],
@@ -278,13 +333,11 @@
               "raw": "{\n  \"name\": \"Demo User\",\n  \"email\": \"demo@example.com\",\n  \"phone\": \"9999999999\",\n  \"role\": \"admin\",\n  \"password\": \"123456\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/user/create",
+              "raw": "{{api_base_url}}/user/create",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "create"
               ]
@@ -310,13 +363,11 @@
               "raw": "{\n  \"name\": \"Updated User\",\n  \"email\": \"updated@example.com\",\n  \"phone\": \"8888888888\",\n  \"role\": \"admin\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/user/update/{{uuid}}",
+              "raw": "{{api_base_url}}/user/update/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "update",
                 "{{uuid}}"
@@ -335,13 +386,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/delete/{{uuid}}",
+              "raw": "{{api_base_url}}/user/delete/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "delete",
                 "{{uuid}}"
@@ -360,19 +409,34 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/get/{{uuid}}",
+              "raw": "{{api_base_url}}/user/get/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "get",
                 "{{uuid}}"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) {}",
+                  "const data = json.data || json;",
+                  "const user = data && data.user ? data.user : null;",
+                  "if (user && user.id !== undefined && user.id !== null) pm.collectionVariables.set(\"user_id\", String(user.id));",
+                  "if (user && user.uuid) pm.collectionVariables.set(\"uuid\", user.uuid);",
+                  "if (user && user.role) pm.collectionVariables.set(\"role\", user.role);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "PUT /api/v1/user/status/:uuid",
@@ -393,13 +457,11 @@
               "raw": "{\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/user/status/{{uuid}}",
+              "raw": "{{api_base_url}}/user/status/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "status",
                 "{{uuid}}"
@@ -418,13 +480,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/getList",
+              "raw": "{{api_base_url}}/user/getList",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "getList"
               ]
@@ -442,13 +502,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/user/export/csv",
+              "raw": "{{api_base_url}}/user/export/csv",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "user",
                 "export",
                 "csv"
@@ -466,13 +524,11 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/v1/access/{{user_id}}",
+              "raw": "{{api_base_url}}/access/{{user_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "access",
                 "{{user_id}}"
               ]
@@ -495,13 +551,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/",
+              "raw": "{{api_base_url}}/module/",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 ""
               ]
@@ -519,13 +573,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/list",
+              "raw": "{{api_base_url}}/module/list",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "list"
               ]
@@ -543,13 +595,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/list/{{module_id}}",
+              "raw": "{{api_base_url}}/module/list/{{module_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "list",
                 "{{module_id}}"
@@ -576,13 +626,11 @@
               "raw": "{\n  \"name\": \"Users\",\n  \"url\": \"/users\",\n  \"icon\": \"users\",\n  \"seq_no\": 1,\n  \"is_permission\": \"Y\",\n  \"is_sub_module\": \"N\",\n  \"parent_id\": 0\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/module/create",
+              "raw": "{{api_base_url}}/module/create",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "create"
               ]
@@ -608,13 +656,11 @@
               "raw": "{\n  \"name\": \"Users\",\n  \"url\": \"/users\",\n  \"icon\": \"users\",\n  \"seq_no\": 1,\n  \"is_permission\": \"Y\",\n  \"is_sub_module\": \"N\",\n  \"parent_id\": 0\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/module/update/{{uuid}}",
+              "raw": "{{api_base_url}}/module/update/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "update",
                 "{{uuid}}"
@@ -633,13 +679,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/delete/{{uuid}}",
+              "raw": "{{api_base_url}}/module/delete/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "delete",
                 "{{uuid}}"
@@ -658,13 +702,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/get/{{uuid}}",
+              "raw": "{{api_base_url}}/module/get/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "get",
                 "{{uuid}}"
@@ -691,13 +733,11 @@
               "raw": "{\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/module/status/{{uuid}}",
+              "raw": "{{api_base_url}}/module/status/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "status",
                 "{{uuid}}"
@@ -716,21 +756,24 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/getList",
+              "raw": "{{api_base_url}}/module/getList",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "module",
                 "getList"
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Role Module",
+      "item": [
         {
-          "name": "GET /api/v1/module/getAllList",
+          "name": "GET /api/v1/role-modules/matrix",
           "request": {
             "method": "GET",
             "header": [
@@ -740,21 +783,19 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/module/getAllList",
+              "raw": "{{api_base_url}}/role-modules/matrix",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "module",
-                "getAllList"
+                "role-modules",
+                "matrix"
               ]
             }
           }
         },
         {
-          "name": "POST /api/v1/module/toggleUserPermission",
+          "name": "POST /api/v1/role-modules/toggle",
           "request": {
             "method": "POST",
             "header": [
@@ -769,18 +810,119 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": 1,\n  \"module_permission_id\": 1,\n  \"isChecked\": true\n}"
+              "raw": "{\n  \"role\": \"{{role}}\",\n  \"module_id\": \"{{module_id}}\",\n  \"enabled\": true\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/module/toggleUserPermission",
+              "raw": "{{api_base_url}}/role-modules/toggle",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "module",
-                "toggleUserPermission"
+                "role-modules",
+                "toggle"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Permission",
+      "item": [
+        {
+          "name": "POST /api/v1/user-permissions/toggle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"module_permission_id\": \"{{module_permission_id}}\",\n  \"isChecked\": true\n}"
+            },
+            "url": {
+              "raw": "{{api_base_url}}/user-permissions/toggle",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "user-permissions",
+                "toggle"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/user-permissions/getAll/:uuid",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base_url}}/user-permissions/getAll/{{uuid}}",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "user-permissions",
+                "getAll",
+                "{{uuid}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/user-permissions/module-access/:uuid",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base_url}}/user-permissions/module-access/{{uuid}}",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "user-permissions",
+                "module-access",
+                "{{uuid}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/user-permissions/side-menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base_url}}/user-permissions/side-menu",
+              "host": [
+                "{{api_base_url}}"
+              ],
+              "path": [
+                "user-permissions",
+                "side-menu"
               ]
             }
           }
@@ -801,13 +943,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/list",
+              "raw": "{{api_base_url}}/cms/list",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "list"
               ]
@@ -833,13 +973,11 @@
               "raw": "{\n  \"title\": \"About\",\n  \"content\": \"About us content\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/create",
+              "raw": "{{api_base_url}}/cms/create",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "create"
               ]
@@ -865,13 +1003,11 @@
               "raw": "{\n  \"title\": \"About Updated\",\n  \"content\": \"Updated content\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/update/{{uuid}}",
+              "raw": "{{api_base_url}}/cms/update/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "update",
                 "{{uuid}}"
@@ -890,13 +1026,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/delete/{{uuid}}",
+              "raw": "{{api_base_url}}/cms/delete/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "delete",
                 "{{uuid}}"
@@ -915,13 +1049,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/get/{{uuid}}",
+              "raw": "{{api_base_url}}/cms/get/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "get",
                 "{{uuid}}"
@@ -948,13 +1080,11 @@
               "raw": "{\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/cms/status/{{uuid}}",
+              "raw": "{{api_base_url}}/cms/status/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "cms",
                 "status",
                 "{{uuid}}"
@@ -988,13 +1118,11 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/editor/upload",
+              "raw": "{{api_base_url}}/editor/upload",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "editor",
                 "upload"
               ]
@@ -1025,13 +1153,11 @@
               "raw": "{\n  \"user_id\": 1,\n  \"other_user_id\": 2,\n  \"type\": \"direct\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/conversation",
+              "raw": "{{api_base_url}}/chat/conversation",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "conversation"
               ]
@@ -1074,13 +1200,11 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/message",
+              "raw": "{{api_base_url}}/chat/message",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "message"
               ]
@@ -1098,13 +1222,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/messages/{{conversation_id}}",
+              "raw": "{{api_base_url}}/chat/messages/{{conversation_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "messages",
                 "{{conversation_id}}"
@@ -1131,13 +1253,11 @@
               "raw": "{\n  \"user_id\": 1\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/message/{{message_uuid}}/read",
+              "raw": "{{api_base_url}}/chat/message/{{message_uuid}}/read",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "message",
                 "{{message_uuid}}",
@@ -1165,13 +1285,11 @@
               "raw": "{\n  \"user_id\": 1,\n  \"message_ids\": [1,2,3]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/message/read/batch",
+              "raw": "{{api_base_url}}/chat/message/read/batch",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "message",
                 "read",
@@ -1191,13 +1309,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/conversations/{{user_id}}",
+              "raw": "{{api_base_url}}/chat/conversations/{{user_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "conversations",
                 "{{user_id}}"
@@ -1216,13 +1332,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/group-conversations/{{user_id}}",
+              "raw": "{{api_base_url}}/chat/group-conversations/{{user_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "group-conversations",
                 "{{user_id}}"
@@ -1241,13 +1355,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/recipients/{{user_id}}",
+              "raw": "{{api_base_url}}/chat/recipients/{{user_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "recipients",
                 "{{user_id}}"
@@ -1266,13 +1378,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/unread-count/{{user_id}}",
+              "raw": "{{api_base_url}}/chat/unread-count/{{user_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "unread-count",
                 "{{user_id}}"
@@ -1299,13 +1409,11 @@
               "raw": "{\n  \"user_id\": 1\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/chat/message/{{message_uuid}}",
+              "raw": "{{api_base_url}}/chat/message/{{message_uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "chat",
                 "message",
                 "{{message_uuid}}"
@@ -1329,13 +1437,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/list",
+              "raw": "{{api_base_url}}/category/list",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "list"
               ]
@@ -1353,13 +1459,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/list/{{module_id}}",
+              "raw": "{{api_base_url}}/category/list/{{module_id}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "list",
                 "{{module_id}}"
@@ -1386,13 +1490,11 @@
               "raw": "{\n  \"name\": \"Category A\",\n  \"parent_id\": null\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/category/create",
+              "raw": "{{api_base_url}}/category/create",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "create"
               ]
@@ -1418,13 +1520,11 @@
               "raw": "{\n  \"name\": \"Category B\",\n  \"parent_id\": null\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/category/update/{{uuid}}",
+              "raw": "{{api_base_url}}/category/update/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "update",
                 "{{uuid}}"
@@ -1443,13 +1543,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/delete/{{uuid}}",
+              "raw": "{{api_base_url}}/category/delete/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "delete",
                 "{{uuid}}"
@@ -1468,13 +1566,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/get/{{uuid}}",
+              "raw": "{{api_base_url}}/category/get/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "get",
                 "{{uuid}}"
@@ -1501,13 +1597,11 @@
               "raw": "{\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/category/status/{{uuid}}",
+              "raw": "{{api_base_url}}/category/status/{{uuid}}",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "status",
                 "{{uuid}}"
@@ -1526,13 +1620,11 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/getList",
+              "raw": "{{api_base_url}}/category/getList",
               "host": [
-                "{{base_url}}"
+                "{{api_base_url}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "category",
                 "getList"
               ]
