@@ -11,12 +11,16 @@ export const chatService = {
       const userCount = await chatRepository.user.count({ where: { id: { in: userIds } } });
       if (userCount !== userIds.length) BaseService.throwError(404, "validation.user_not_found");
 
-      const conversation = await chatRepository.conversation.create({
-        data: { type: "group", name, created_by: current_user_id },
-      });
+      const conversation = await chatRepository.transaction(async (tx) => {
+        const createdConversation = await tx.conversation.create({
+          data: { type: "group", name, created_by: current_user_id },
+        });
 
-      await chatRepository.conversationMember.createMany({
-        data: userIds.map((uid) => ({ conversation_id: conversation.id, user_id: uid })),
+        await tx.conversationMember.createMany({
+          data: userIds.map((uid) => ({ conversation_id: createdConversation.id, user_id: uid })),
+        });
+
+        return createdConversation;
       });
 
       return { conversation, isExisting: false };
@@ -41,15 +45,19 @@ export const chatService = {
       return { conversation: directConversation, isExisting: true };
     }
 
-    const conversation = await chatRepository.conversation.create({
-      data: { type: "direct", created_by: current_user_id },
-    });
+    const conversation = await chatRepository.transaction(async (tx) => {
+      const createdConversation = await tx.conversation.create({
+        data: { type: "direct", created_by: current_user_id },
+      });
 
-    await chatRepository.conversationMember.createMany({
-      data: [
-        { conversation_id: conversation.id, user_id: current_user_id },
-        { conversation_id: conversation.id, user_id: recipientUserId },
-      ],
+      await tx.conversationMember.createMany({
+        data: [
+          { conversation_id: createdConversation.id, user_id: current_user_id },
+          { conversation_id: createdConversation.id, user_id: recipientUserId },
+        ],
+      });
+
+      return createdConversation;
     });
 
     return { conversation, isExisting: false };

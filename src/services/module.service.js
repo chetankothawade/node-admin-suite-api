@@ -174,7 +174,12 @@ export const moduleService = {
     if (!module) {
       BaseService.throwError(404, "error.not_found");
     }
-    await moduleRepository.deleteById(module.id);
+
+    await moduleRepository.transaction(async (tx) => {
+      await moduleRepository.deleteModulePermissions({ module_id: module.id }, tx);
+      await moduleRepository.deleteRoleModules({ module_id: BigInt(module.id) }, tx);
+      await moduleRepository.deleteById(module.id, tx);
+    });
   },
 
   async getModule(uuid) {

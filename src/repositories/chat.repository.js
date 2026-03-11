@@ -12,8 +12,8 @@ export class ChatRepository {
   get messageFile() { return this.db.messageFile; }
   get messageStatus() { return this.db.messageStatus; }
 
-  transaction(ops) {
-    return this.db.$transaction(ops);
+  transaction(opsOrFn) {
+    return this.db.$transaction(opsOrFn);
   }
 }
 

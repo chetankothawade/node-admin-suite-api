@@ -23,6 +23,7 @@ export class ModuleRepository {
   findModulePermissions(params, tx = this.db) { return tx.modulePermission.findMany(params); }
   createModulePermissions(data, tx = this.db) { return tx.modulePermission.createMany({ data }); }
   deleteModulePermissions(where, tx = this.db) { return tx.modulePermission.deleteMany({ where }); }
+  deleteRoleModules(where, tx = this.db) { return tx.roleModule.deleteMany({ where }); }
   createRoleModule(data, tx = this.db) {
     const moduleId = BigInt(data.module_id);
     return tx.roleModule.upsert({
