@@ -45,13 +45,6 @@ export class UserRepository {
     });
   }
 
-  async getUserByEmail(email, fields = []) {
-    return this.db.user.findUnique({
-      where: { email },
-      ...(fields.length > 0 ? { select: this.buildSelect(fields) } : {}),
-    });
-  }
-
   async getUserByUuid(uuid, fields = []) {
     return this.db.user.findFirst({
       where: { uuid },
@@ -75,10 +68,6 @@ export class UserRepository {
       data,
       ...(fields.length > 0 ? { select: this.buildSelect(fields) } : {}),
     });
-  }
-
-  async deleteUser(id) {
-    return this.db.user.delete({ where: { id } });
   }
 
   async listAdmins(fields = []) {

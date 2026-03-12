@@ -106,14 +106,6 @@ export class UserService {
     };
   }
 
-  async getUserById(id) {
-    const user = await this.userRepository.getUserById(id, USER_DETAIL_FIELDS);
-    if (!user) {
-      BaseService.throwError(404, "error.not_found");
-    }
-    return user;
-  }
-
   async updateUser({ id, body, file, req }) {
     const user = await this.userRepository.getUserById(id);
     if (!user) {

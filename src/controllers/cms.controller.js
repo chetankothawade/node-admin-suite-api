@@ -72,20 +72,6 @@ export const getCms = async (req, res) => {
 };
 
 /**
- * @desc Get CMS page by UUID (raw query version)
- * @route GET /cms/get/:uuid
- * @access Authenticated
- */
-export const getCms1 = async (req, res) => {
-  try {
-    const cms = await cmsService.getCms1(req.params.uuid);
-    return sendResponse(res, 200, true, "cms.get.success", { cms });
-  } catch (error) {
-    return handleError(req, res, error, { logPrefix: "CMS Get Error:" });
-  }
-};
-
-/**
  * @desc Update CMS status by UUID
  * @route PUT /cms/status/:uuid
  * @access Authenticated

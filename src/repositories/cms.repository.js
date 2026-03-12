@@ -11,7 +11,6 @@ export class CmsRepository {
   findByUuid(uuid, select) { return this.db.cms.findFirst({ where: { uuid }, ...(select ? { select } : {}) }); }
   updateById(id, data) { return this.db.cms.update({ where: { id }, data }); }
   deleteById(id) { return this.db.cms.delete({ where: { id } }); }
-  queryRaw(sql) { return this.db.$queryRaw(sql); }
 }
 
 export const cmsRepository = new CmsRepository();
