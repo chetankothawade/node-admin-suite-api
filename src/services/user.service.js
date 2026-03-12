@@ -54,25 +54,8 @@ export class UserService {
     }
   }
 
-  validateCreatePayload(body = {}) {
-    const required = ["name", "email", "phone", "role", "password"];
-    return required.every((field) => Boolean(body[field]));
-  }
-
-  validateUpdatePayload(body = {}) {
-    const required = ["name", "email", "phone", "role"];
-    return required.every((field) => Boolean(body[field]));
-  }
-
   async createUser({ body, file, req }) {
-    if (!this.validateCreatePayload(body)) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
-    const existingUser = await this.userRepository.getUserByEmail(body.email);
-    if (existingUser) {
-      BaseService.throwError(409, "auth.register.user_exists");
-    }
+   
 
     const avatarUpload = file ? await Storage.put(file, "images") : null;
     const avatar = avatarUpload ? this.buildAbsoluteUrl(req, avatarUpload.url) : "";
@@ -132,10 +115,6 @@ export class UserService {
   }
 
   async updateUser({ id, body, file, req }) {
-    if (!this.validateUpdatePayload(body)) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
     const user = await this.userRepository.getUserById(id);
     if (!user) {
       BaseService.throwError(404, "error.not_found");
@@ -206,10 +185,6 @@ export class UserService {
   }
 
   async updateUserStatusByUuid(uuid, payload = {}) {
-    if (!payload.status) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
     const user = await this.userRepository.getUserByUuid(uuid);
     if (!user) {
       BaseService.throwError(404, "error.not_found");

@@ -12,10 +12,6 @@ const userService = new UserService(new UserRepository());
  */
 export const createUser = async (req, res) => {
   try {
-    if (!req.body?.name || !req.body?.email || !req.body?.phone || !req.body?.role || !req.body?.password) {
-      return sendResponse(res, 400, false, "validation.missing_fields");
-    }
-
     const user = await userService.createUser({ body: req.body, file: req.file, req });
     return sendResponse(res, 201, true, "user.create.success", { user });
   } catch (error) {
