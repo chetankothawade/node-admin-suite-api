@@ -1,12 +1,14 @@
 import { LocalStorage } from "./local.storage.js";
 import { S3Storage } from "./s3.storage.js";
+import { CloudinaryStorage } from "./cloudinary.storage.js";
 
 class StorageManager {
 
   constructor() {
     this.drivers = {
       local: new LocalStorage(),
-      s3: new S3Storage()
+      s3: new S3Storage(),
+      cloudinary: new CloudinaryStorage()
     };
   }
 
