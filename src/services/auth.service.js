@@ -52,9 +52,6 @@ const sendVerificationEmail = async (user) => {
 export const authService = {
   async register(body) {
     const { name, email, password, role } = body || {};
-    if (!name || !email || !password || !role) {
-      BaseService.throwError(400, "auth.register.fields_required");
-    }
 
     const existingUser = await authRepository.findUserByEmail(email);
     if (existingUser) {
@@ -95,9 +92,6 @@ export const authService = {
 
   async login(body) {
     const { email, password } = body || {};
-    if (!email || !password) {
-      BaseService.throwError(400, "auth.login.fields_required");
-    }
 
     const user = await authRepository.findUserByEmail(email, withPasswordSelect);
     if (!user) {
@@ -134,9 +128,6 @@ export const authService = {
 
   async forgotPassword(body) {
     const { email } = body || {};
-    if (!email) {
-      BaseService.throwError(400, "auth.forgot_password.email_required");
-    }
 
     const user = await authRepository.findUserByEmail(email);
     if (!user) {
@@ -163,9 +154,6 @@ export const authService = {
 
   async resetPassword(token, body) {
     const { password } = body || {};
-    if (!password) {
-      BaseService.throwError(400, "auth.reset_password.password_required");
-    }
 
     const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const user = await authRepository.findResettableUser(resetTokenHash, new Date(), withPasswordSelect);
@@ -184,9 +172,6 @@ export const authService = {
 
   async sendEmailVerification(body) {
     const { email } = body || {};
-    if (!email) {
-      BaseService.throwError(400, "auth.verify_email.email_required");
-    }
 
     const user = await authRepository.findUserByEmail(email, withPasswordSelect);
     if (!user) {
@@ -228,5 +213,4 @@ export const authService = {
     return { role: user?.role };
   },
 };
-
 

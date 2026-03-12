@@ -65,10 +65,6 @@ export const moduleService = {
     const is_permission = toYN(payload.is_permission, "N");
     const is_sub_module = toYN(payload.is_sub_module, "N");
 
-    if (!name || seq_no === undefined || seq_no === null) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
     return moduleRepository.transaction(async (tx) => {
       const moduleData = {
         name,
@@ -118,10 +114,6 @@ export const moduleService = {
 
     const is_permission = toYN(payload.is_permission, "N");
     const is_sub_module = toYN(payload.is_sub_module, "N");
-
-    if (!name || seq_no === undefined || seq_no === null || !uuid) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
 
     const module = await moduleRepository.findByUuid(uuid);
     if (!module) {
@@ -195,10 +187,6 @@ export const moduleService = {
   },
 
   async moduleStatus(uuid, status) {
-    if (!status) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
     const module = await moduleRepository.findByUuid(uuid);
     if (!module) {
       BaseService.throwError(404, "error.not_found");

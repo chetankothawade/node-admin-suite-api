@@ -33,7 +33,12 @@ export const validateRequest = (key) => {
                 for (const issue of parsed.error.issues) {
                     const field = issue.path?.[0] || "request";
                     if (!errors[field]) {
-                        errors[field] = capitalizeFirst(req.__(issue.message));
+                        const params = {
+                            field: String(field),
+                            ...(typeof issue.minimum === "number" ? { min: issue.minimum } : {}),
+                            ...(typeof issue.maximum === "number" ? { max: issue.maximum } : {}),
+                        };
+                        errors[field] = capitalizeFirst(req.__(issue.message, params));
                     }
                 }
                 return res.status(422).json({

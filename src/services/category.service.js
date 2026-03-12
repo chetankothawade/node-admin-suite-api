@@ -35,7 +35,6 @@ export const categoryService = {
 
   async createCategory(payload) {
     const { name, parent_id } = payload;
-    if (!name) BaseService.throwError(400, "validation.missing_fields");
 
     return categoryRepository.create({ name, parent_id: parent_id ? Number(parent_id) : null });
   },
@@ -65,8 +64,6 @@ export const categoryService = {
   },
 
   async updateCategoryStatus(uuid, status) {
-    if (status === undefined) BaseService.throwError(400, "validation.missing_fields");
-
     const category = await categoryRepository.findByUuid(uuid);
     if (!category) BaseService.throwError(404, "error.not_found");
 

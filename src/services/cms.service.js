@@ -29,18 +29,11 @@ export const cmsService = {
 
   async createCms(payload) {
     const { title, content } = payload;
-    if (!title || !content) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
     return cmsRepository.create({ title, content });
   },
 
   async updateCms(uuid, payload) {
     const { title, content } = payload;
-    if (!title || !content) {
-      BaseService.throwError(400, "validation.missing_fields");
-    }
-
     const cms = await cmsRepository.findByUuid(uuid);
     if (!cms) BaseService.throwError(404, "error.not_found");
 
@@ -77,8 +70,6 @@ export const cmsService = {
   },
 
   async cmsStatus(uuid, status) {
-    if (!status) BaseService.throwError(400, "validation.missing_fields");
-
     const cms = await cmsRepository.findByUuid(uuid);
     if (!cms) BaseService.throwError(404, "error.not_found");
 
