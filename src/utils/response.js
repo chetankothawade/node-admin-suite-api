@@ -1,21 +1,4 @@
 // utils/response.js
-
-// /**
-//  * Standardized API Response Utility
-//  * @param {object} res - Express response object
-//  * @param {number} status - HTTP status code
-//  * @param {boolean} success - Success flag
-//  * @param {string} message - Response message
-//  * @param {object} [data={}] - Additional response data
-//  */
-// export const sendResponse = (res, status, success, message, data = {}) => {
-//   return res.status(status).json({
-//     success,
-//     message,
-//     ...data,
-//   });
-// };
-
 /**
  * Standardized API Response Utility with i18n support
  * @param {object} res - Express response object

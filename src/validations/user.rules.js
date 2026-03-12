@@ -4,9 +4,9 @@ export default {
         email: {
             rules: "required|email|unique:users,email",
             message: {
-                required: "Email cannot be empty",
-                email: "Please enter a valid email address",
-                unique: "Email already registered"
+                required: "validation.required",
+                email: "validation.email",
+                unique: "validation.unique"
             }
         },
         phone: "required|min:8",

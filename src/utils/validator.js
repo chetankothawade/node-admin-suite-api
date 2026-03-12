@@ -46,58 +46,88 @@ export async function validateRules(rules, data, files = {}) {
             const [ruleName, ruleValue] = rule.split(":");
 
             const getMessage = (defaultMessage) => {
-                return customMessages?.[ruleName] || defaultMessage;
+                const customMessage = customMessages?.[ruleName];
+                if (!customMessage) {
+                    return defaultMessage;
+                }
+
+                if (typeof customMessage === "string") {
+                    return {
+                        key: customMessage,
+                        params: defaultMessage?.params || { field }
+                    };
+                }
+
+                if (typeof customMessage === "object" && customMessage.key) {
+                    return {
+                        key: customMessage.key,
+                        params: {
+                            ...(defaultMessage?.params || { field }),
+                            ...(customMessage.params || {})
+                        }
+                    };
+                }
+
+                return customMessage;
             };
+
+            const makeError = (key, params = {}) => ({
+                key,
+                params: {
+                    field,
+                    ...params
+                }
+            });
 
             switch (ruleName) {
 
                 case "required":
                     if (value === undefined || value === null || value === "") {
-                        errors[field] = getMessage(`${field} is required`);
+                        errors[field] = getMessage(makeError("validation.required"));
                     }
                     break;
 
                 case "email":
                     const emailRegex = /\S+@\S+\.\S+/;
                     if (value && !emailRegex.test(value)) {
-                        errors[field] = getMessage(`${field} must be a valid email`);
+                        errors[field] = getMessage(makeError("validation.email"));
                     }
                     break;
 
                 case "min":
                     if (value && value.length < Number(ruleValue)) {
-                        errors[field] = getMessage(`${field} must be at least ${ruleValue}`);
+                        errors[field] = getMessage(makeError("validation.min", { min: Number(ruleValue) }));
                     }
                     break;
 
                 case "max":
                     if (value && value.length > Number(ruleValue)) {
-                        errors[field] = getMessage(`${field} must be less than ${ruleValue}`);
+                        errors[field] = getMessage(makeError("validation.max", { max: Number(ruleValue) }));
                     }
                     break;
 
                 case "numeric":
                     if (value && isNaN(value)) {
-                        errors[field] = getMessage(`${field} must be numeric`);
+                        errors[field] = getMessage(makeError("validation.numeric"));
                     }
                     break;
 
                 case "boolean":
                     if (typeof value !== "boolean") {
-                        errors[field] = getMessage(`${field} must be boolean`);
+                        errors[field] = getMessage(makeError("validation.boolean"));
                     }
                     break;
 
                 case "in":
                     const options = ruleValue.split(",");
                     if (!options.includes(value)) {
-                        errors[field] = getMessage(`${field} must be one of ${options.join(", ")}`);
+                        errors[field] = getMessage(makeError("validation.in"));
                     }
                     break;
 
                 case "confirmed":
                     if (value !== data[`${field}_confirmation`]) {
-                        errors[field] = getMessage(`${field} confirmation does not match`);
+                        errors[field] = getMessage(makeError("validation.confirmed"));
                     }
                     break;
 
@@ -107,7 +137,7 @@ export async function validateRules(rules, data, files = {}) {
                     const delegate = resolveModelDelegate(table);
 
                     if (!delegate) {
-                        errors[field] = getMessage(`${field} has invalid validation rule configuration`);
+                        errors[field] = getMessage(makeError("validation.invalid"));
                         break;
                     }
 
@@ -116,7 +146,7 @@ export async function validateRules(rules, data, files = {}) {
                     });
 
                     if (exists) {
-                        errors[field] = getMessage(`${field} already exists`);
+                        errors[field] = getMessage(makeError("validation.unique"));
                     }
 
                     break;
@@ -127,7 +157,7 @@ export async function validateRules(rules, data, files = {}) {
                     const delegateForExists = resolveModelDelegate(tableName);
 
                     if (!delegateForExists) {
-                        errors[field] = getMessage(`${field} has invalid validation rule configuration`);
+                        errors[field] = getMessage(makeError("validation.invalid"));
                         break;
                     }
 
@@ -136,20 +166,20 @@ export async function validateRules(rules, data, files = {}) {
                     });
 
                     if (!record) {
-                        errors[field] = getMessage(`${field} does not exist`);
+                        errors[field] = getMessage(makeError("validation.exists"));
                     }
 
                     break;
 
                 case "array":
                     if (!Array.isArray(value)) {
-                        errors[field] = getMessage(`${field} must be an array`);
+                        errors[field] = getMessage(makeError("validation.array"));
                     }
                     break;
 
                 case "file":
                     if (!files[field]) {
-                        errors[field] = getMessage(`${field} file is required`);
+                        errors[field] = getMessage(makeError("validation.file"));
                     }
                     break;
 
@@ -161,7 +191,7 @@ export async function validateRules(rules, data, files = {}) {
                         const ext = files[field].originalname.split(".").pop();
 
                         if (!allowed.includes(ext)) {
-                            errors[field] = getMessage(`${field} must be ${allowed.join(", ")}`);
+                            errors[field] = getMessage(makeError("validation.mimes"));
                         }
                     }
 
@@ -173,7 +203,7 @@ export async function validateRules(rules, data, files = {}) {
                         const sizeKB = files[field].size / 1024;
 
                         if (sizeKB > Number(ruleValue)) {
-                            errors[field] = getMessage(`${field} must be less than ${ruleValue} KB`);
+                            errors[field] = getMessage(makeError("validation.maxFile"));
                         }
                     }
 
