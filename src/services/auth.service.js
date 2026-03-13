@@ -4,6 +4,7 @@ import { authRepository } from "../repositories/auth.repository.js";
 import { BaseService } from "./base.service.js";
 import { emailService } from "../utils/sendEmail.js";
 import { generateToken, generateEmailVerificationToken, verifyEmailVerificationToken } from "../utils/token.js";
+import { resolvePreviewUrl } from "../utils/mediaUrl.js";
 
 const SALT_ROUNDS = 10;
 
@@ -84,7 +85,7 @@ export const authService = {
         email: newUser.email,
         email_verified: newUser.email_verified,
         role: newUser.role,
-        avatar: newUser.avatar || null,
+        avatar: resolvePreviewUrl(newUser.avatar),
       },
       verification_sent: true,
     };
@@ -120,7 +121,7 @@ export const authService = {
         name: user.name,
         email: user.email,
         email_verified: user.email_verified,
-        avatar: user.avatar || null,
+        avatar: resolvePreviewUrl(user.avatar),
         role: user.role,
       },
     };
@@ -213,4 +214,3 @@ export const authService = {
     return { role: user?.role };
   },
 };
-

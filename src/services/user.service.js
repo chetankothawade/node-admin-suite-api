@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { BaseService } from "./base.service.js";
 import { getPaginationParams, buildPaginationMeta } from "./pagination.service.js";
 import { Storage } from "./storage/storageManager.js";
+import { resolvePreviewUrl } from "../utils/mediaUrl.js";
 
 const SALT_ROUNDS = 10;
 
@@ -25,11 +26,11 @@ export class UserService {
     this.userRepository = userRepository;
   }
 
-  buildAbsoluteUrl(req, url) {
-    if (!url) return "";
-    if (url.startsWith("http")) return url;
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+  resolveStoredAvatarPath(avatarUpload = null) {
+    if (!avatarUpload) return "";
+    if (avatarUpload.path) return String(avatarUpload.path).replace(/^\/+/, "");
+    if (avatarUpload.url) return this.extractStoragePath(avatarUpload.url);
+    return "";
   }
 
   extractStoragePath(avatarUrl = "") {
@@ -54,14 +55,14 @@ export class UserService {
     }
   }
 
-  async createUser({ body, file, req }) {
+  async createUser({ body, file }) {
    
 
     const avatarUpload = file ? await Storage.put(file, "images") : null;
-    const avatar = avatarUpload ? this.buildAbsoluteUrl(req, avatarUpload.url) : "";
+    const avatar = this.resolveStoredAvatarPath(avatarUpload);
     const password = await bcrypt.hash(body.password, SALT_ROUNDS);
 
-    return this.userRepository.createUser(
+    const createdUser = await this.userRepository.createUser(
       {
         name: body.name,
         email: body.email,
@@ -72,6 +73,11 @@ export class UserService {
       },
       USER_DETAIL_FIELDS
     );
+
+    return {
+      ...createdUser,
+      avatar: resolvePreviewUrl(createdUser.avatar),
+    };
   }
 
   async getUsers({ current_user_id, query }) {
@@ -101,12 +107,15 @@ export class UserService {
     });
 
     return {
-      users,
+      users: users.map((user) => ({
+        ...user,
+        avatar: resolvePreviewUrl(user.avatar),
+      })),
       pagination: buildPaginationMeta(total, page, limit),
     };
   }
 
-  async updateUser({ id, body, file, req }) {
+  async updateUser({ id, body, file }) {
     const user = await this.userRepository.getUserById(id);
     if (!user) {
       BaseService.throwError(404, "error.not_found");
@@ -121,10 +130,10 @@ export class UserService {
     if (file) {
       await this.removeAvatarFromStorage(user.avatar);
       const avatarUpload = await Storage.put(file, "images");
-      avatar = this.buildAbsoluteUrl(req, avatarUpload.url);
+      avatar = this.resolveStoredAvatarPath(avatarUpload);
     }
 
-    return this.userRepository.updateUser(
+    const updatedUser = await this.userRepository.updateUser(
       id,
       {
         name: body.name,
@@ -135,6 +144,11 @@ export class UserService {
       },
       USER_DETAIL_FIELDS
     );
+
+    return {
+      ...updatedUser,
+      avatar: resolvePreviewUrl(updatedUser.avatar),
+    };
   }
 
   async deleteUser(id) {
@@ -155,7 +169,10 @@ export class UserService {
     if (!user) {
       BaseService.throwError(404, "error.not_found");
     }
-    return user;
+    return {
+      ...user,
+      avatar: resolvePreviewUrl(user.avatar),
+    };
   }
 
   async updateUserByUuid({ uuid, body, file, req }) {
@@ -182,11 +199,16 @@ export class UserService {
       BaseService.throwError(404, "error.not_found");
     }
 
-    return this.userRepository.updateUser(
+    const updatedUser = await this.userRepository.updateUser(
       user.id,
       { status: payload.status === "active" ? "inactive" : "active" },
       USER_DETAIL_FIELDS
     );
+
+    return {
+      ...updatedUser,
+      avatar: resolvePreviewUrl(updatedUser.avatar),
+    };
   }
 
   async getMe(user_id) {
@@ -195,11 +217,18 @@ export class UserService {
       BaseService.throwError(404, "error.not_found");
     }
 
-    return user;
+    return {
+      ...user,
+      avatar: resolvePreviewUrl(user.avatar),
+    };
   }
 
   async getAdminUsers() {
-    return this.userRepository.listAdmins(USER_LIST_FIELDS);
+    const users = await this.userRepository.listAdmins(USER_LIST_FIELDS);
+    return users.map((user) => ({
+      ...user,
+      avatar: resolvePreviewUrl(user.avatar),
+    }));
   }
 
   async getUsersForCsv() {
