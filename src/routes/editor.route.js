@@ -3,6 +3,7 @@ import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import { uploadEditor } from "../utils/multer.js";
 import { Storage } from "../services/storage/storageManager.js";
+import logger from "../utils/logger.js";
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post(
         url: fileUrl,
       });
     } catch (err) {
-      console.error(err);
+      logger.error({ err }, "Editor upload route error");
       return res.status(500).json({ success: false, message: "Server error" });
     }
   }

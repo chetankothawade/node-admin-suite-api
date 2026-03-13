@@ -1,3 +1,5 @@
+import logger from "./logger.js";
+
 // utils/response.js
 /**
  * Standardized API Response Utility with i18n support
@@ -64,6 +66,6 @@ export const handleError = (req, res, error, {
         return sendResponse(res, error.status, false, error.exposeMessage);
     }
     // Fallback for unexpected runtime errors.
-    console.error(logPrefix, error);
+    logger.error({ err: error, logPrefix }, "Controller error");
     return sendResponse(res, 500, false, fallbackMessage);
 };

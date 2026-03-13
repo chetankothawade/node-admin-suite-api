@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import logger from "./logger.js";
 dotenv.config({});
 
 cloudinary.config({
@@ -15,7 +16,7 @@ export const uploadMedia = async (file) => {
     });
     return uploadResponse;
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
+    logger.error({ err: error }, "Cloudinary upload error");
     throw error;
   }
 };
@@ -23,7 +24,7 @@ export const deleteMediaFromCloudinary = async (publicId) => {
   try {
     await cloudinary.uploader.destroy(publicId);
   } catch (error) {
-    console.error("Cloudinary delete error:", error);
+    logger.error({ err: error }, "Cloudinary delete error");
     throw error;
   }
 };
@@ -32,7 +33,7 @@ export const deleteVideoFromCloudinary = async (publicId) => {
     try {
         await cloudinary.uploader.destroy(publicId,{resource_type:"video"});
     } catch (error) {
-        console.error("Cloudinary video delete error:", error);
+        logger.error({ err: error }, "Cloudinary video delete error");
         throw error;
     }
 }

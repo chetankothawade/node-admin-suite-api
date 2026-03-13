@@ -1,5 +1,6 @@
 // middleware/isAuthenticated.js
 import { verifyToken } from "../utils/token.js";
+import logger from "../utils/logger.js";
 
 const isAuthenticated = async (req, res, next) => {
   try {
@@ -37,7 +38,7 @@ const isAuthenticated = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
+    logger.error({ err: error }, "Auth middleware error");
     return res.status(401).json({
       success: false,
       message: "Not authorized, token failed",

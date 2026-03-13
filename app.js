@@ -8,6 +8,7 @@ import i18n from "i18n";
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import multer from "multer";
+import logger from "./src/utils/logger.js";
 
 // Import routes
 import v1Routes from "./src/routes/v1/index.js";
@@ -45,8 +46,8 @@ i18n.configure({
   queryParameter: "lang",
   autoReload: true,
   syncFiles: true,
-  logWarnFn: (msg) => console.warn("i18n warn:", msg),
-  logErrorFn: (msg) => console.error("i18n error:", msg)
+  logWarnFn: (msg) => logger.warn({ msg }, "i18n warning"),
+  logErrorFn: (msg) => logger.error({ msg }, "i18n error")
 });
 app.use(i18n.init);
 
@@ -95,7 +96,7 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error(err);
+  logger.error({ err }, "Unhandled application error");
   res.status(500).json({ error: 'Internal server error' });
 });
 

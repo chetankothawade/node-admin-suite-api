@@ -2,6 +2,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import logger from "../utils/logger.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -26,7 +27,7 @@ io.on("connection", (socket) => {
   const user_id = socket.handshake.query.user_id;
   if (user_id) {
     userSocketMap[user_id] = socket.id;
-    console.log(`User connected: ${user_id} (${socket.id})`);
+    logger.info({ user_id, socketId: socket.id }, "User connected");
   }
 
   // Notify all clients of online users
@@ -36,7 +37,7 @@ io.on("connection", (socket) => {
   socket.on("joinConversation", (conversation_id) => {
     if (conversation_id) {
       socket.join(`conversation_${conversation_id}`);
-      console.log(`User ${user_id} joined room: conversation_${conversation_id}`);
+      logger.info({ user_id, conversation_id }, "User joined conversation room");
     }
   });
 
@@ -58,12 +59,12 @@ io.on("connection", (socket) => {
 
   // ------------------- ON DISCONNECT -------------------
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${user_id}`);
+    logger.info({ user_id }, "User disconnected");
     if (user_id) delete userSocketMap[user_id];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
-export { app, io, server };
+export { app, server };
 
 

@@ -2,6 +2,7 @@ import { Parser } from "json2csv";
 import { sendResponse, sendListResponse, handleError } from "../utils/response.js";
 import { UserService, userCsvFields } from "../services/user.service.js";
 import { UserRepository } from "../repositories/user.repository.js";
+import logger from "../utils/logger.js";
 
 const userService = new UserService(new UserRepository());
 
@@ -158,7 +159,7 @@ export const exportUsersCSV = async (req, res) => {
       return sendResponse(res, error.status, false, error.exposeMessage);
     }
 
-    console.error("Export CSV error:", error);
+    logger.error({ err: error }, "Export CSV error");
     return sendResponse(res, 500, false, "Failed to export users.");
   }
 };
