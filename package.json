@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/unit",
+    "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/integration",
     "postman:generate": "npx postmanify-express generate --input ./app.js --output ./postman_collection.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -41,6 +44,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.10",
     "postmanify-express": "^2.2.1",
     "prisma": "^6.6.0"
