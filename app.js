@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import i18n from "i18n";
 import path from 'path';
 import rateLimit from 'express-rate-limit';
+import multer from "multer";
 
 // Import routes
 import v1Routes from "./src/routes/v1/index.js";
@@ -74,6 +75,26 @@ app.use((req, res) => {
 
 // 6. Global error handler: The final middleware
 app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      success: false,
+      message: err.message || "File upload validation failed.",
+    });
+  }
+
+  // File filter validation errors (e.g. uploading PDF on image endpoint)
+  const isFileTypeValidationError =
+    typeof err?.message === "string" &&
+    err.message.startsWith("Only ") &&
+    err.message.toLowerCase().includes("allowed");
+
+  if (isFileTypeValidationError) {
+    return res.status(422).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   console.error(err);
   res.status(500).json({ error: 'Internal server error' });
 });
