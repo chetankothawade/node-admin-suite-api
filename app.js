@@ -8,7 +8,7 @@ import i18n from "i18n";
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import logger from "./src/utils/logger.js";
-import errorHandler from "./src/middleware/errorHandler.js";
+import errorHandler from "./src/middlewares/errorHandler.js";
 
 // Import routes
 import v1Routes from "./src/routes/v1/index.js";
