@@ -2,6 +2,7 @@ import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { createMockReq, createMockRes } from "../../helpers/mocks.js";
 
 const sendResponse = jest.fn();
+const sendListResponse = jest.fn();
 const handleError = jest.fn();
 const cmsService = {
   listCms: jest.fn(),
@@ -14,6 +15,7 @@ const cmsService = {
 
 jest.unstable_mockModule("../../../src/utils/response.js", () => ({
   sendResponse,
+  sendListResponse,
   handleError,
 }));
 
@@ -36,12 +38,13 @@ describe("cms.controller unit", () => {
     await listCms(req, res);
 
     expect(cmsService.listCms).toHaveBeenCalledWith(req.query);
-    expect(sendResponse).toHaveBeenCalledWith(
+    expect(sendListResponse).toHaveBeenCalledWith(
       res,
       200,
       true,
       "cms.list.success",
-      expect.objectContaining({ cms: [] })
+      [],
+      { total: 0 }
     );
   });
 
@@ -61,4 +64,3 @@ describe("cms.controller unit", () => {
     );
   });
 });
-

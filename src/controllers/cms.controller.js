@@ -1,4 +1,4 @@
-import { sendResponse, handleError } from "../utils/response.js";
+import { sendResponse, sendListResponse, handleError } from "../utils/response.js";
 import { cmsService } from "../services/cms.service.js";
 
 /**
@@ -8,8 +8,8 @@ import { cmsService } from "../services/cms.service.js";
  */
 export const listCms = async (req, res) => {
   try {
-    const data = await cmsService.listCms(req.query);
-    return sendResponse(res, 200, true, "cms.list.success", data);
+    const result = await cmsService.listCms(req.query);
+    return sendListResponse(res, 200, true, "cms.list.success", result.cms, result.pagination);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Get cms error:" });
   }
@@ -23,7 +23,7 @@ export const listCms = async (req, res) => {
 export const createCms = async (req, res) => {
   try {
     const cms = await cmsService.createCms(req.body);
-    return sendResponse(res, 201, true, "cms.create.success", { cms });
+    return sendResponse(res, 201, true, "cms.create.success", cms);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "CMS Create Error:" });
   }
@@ -37,7 +37,7 @@ export const createCms = async (req, res) => {
 export const updateCms = async (req, res) => {
   try {
     const cms = await cmsService.updateCms(req.params.uuid, req.body);
-    return sendResponse(res, 200, true, "cms.update.success", { cms });
+    return sendResponse(res, 200, true, "cms.update.success", cms);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "CMS Update Error:" });
   }
@@ -65,7 +65,7 @@ export const deleteCms = async (req, res) => {
 export const getCms = async (req, res) => {
   try {
     const cms = await cmsService.getCms(req.params.uuid);
-    return sendResponse(res, 200, true, "cms.get.success", { cms });
+    return sendResponse(res, 200, true, "cms.get.success", cms);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "CMS Get Error:" });
   }

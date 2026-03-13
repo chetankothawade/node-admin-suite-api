@@ -2,6 +2,7 @@ import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { createMockReq, createMockRes } from "../../helpers/mocks.js";
 
 const sendResponse = jest.fn();
+const sendListResponse = jest.fn();
 const handleError = jest.fn();
 const categoryService = {
   listCategories: jest.fn(),
@@ -15,6 +16,7 @@ const categoryService = {
 
 jest.unstable_mockModule("../../../src/utils/response.js", () => ({
   sendResponse,
+  sendListResponse,
   handleError,
 }));
 
@@ -32,7 +34,7 @@ describe("category.controller unit", () => {
   it("listCategories should pass params/query to service", async () => {
     const req = createMockReq({ params: { id: "10" }, query: { search: "food" } });
     const res = createMockRes();
-    categoryService.listCategories.mockResolvedValue({ categories: [] });
+    categoryService.listCategories.mockResolvedValue({ categories: [], pagination: { total: 0 } });
 
     await listCategories(req, res);
 
@@ -40,12 +42,13 @@ describe("category.controller unit", () => {
       params: req.params,
       query: req.query,
     });
-    expect(sendResponse).toHaveBeenCalledWith(
+    expect(sendListResponse).toHaveBeenCalledWith(
       res,
       200,
       true,
       "category.list.success",
-      expect.objectContaining({ categories: [] })
+      [],
+      { total: 0 }
     );
   });
 
@@ -66,4 +69,3 @@ describe("category.controller unit", () => {
     );
   });
 });
-

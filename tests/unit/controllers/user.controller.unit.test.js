@@ -2,6 +2,7 @@ import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { createMockReq, createMockRes } from "../../helpers/mocks.js";
 
 const sendResponse = jest.fn();
+const sendListResponse = jest.fn();
 const handleError = jest.fn();
 
 const userServiceMethods = {
@@ -21,6 +22,7 @@ const UserRepository = jest.fn();
 
 jest.unstable_mockModule("../../../src/utils/response.js", () => ({
   sendResponse,
+  sendListResponse,
   handleError,
 }));
 
@@ -56,7 +58,7 @@ describe("user.controller unit", () => {
       201,
       true,
       "user.create.success",
-      { user: { id: 10, name: "Neo" } }
+      { id: 10, name: "Neo" }
     );
   });
 
@@ -76,4 +78,3 @@ describe("user.controller unit", () => {
     expect(csvOutput).toContain("'=CMD()");
   });
 });
-

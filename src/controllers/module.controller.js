@@ -1,4 +1,4 @@
-import { sendResponse, handleError } from "../utils/response.js";
+import { sendResponse, sendListResponse, handleError } from "../utils/response.js";
 import { moduleService } from "../services/module.service.js";
 
 /**
@@ -8,8 +8,8 @@ import { moduleService } from "../services/module.service.js";
  */
 export const listModule = async (req, res) => {
   try {
-    const data = await moduleService.listModule({ params: req.params, query: req.query });
-    return sendResponse(res, 200, true, "module.list.success", data);
+    const result = await moduleService.listModule({ params: req.params, query: req.query });
+    return sendListResponse(res, 200, true, "module.list.success", result.module, result.pagination);
   } catch (error) {
     return handleError(req, res, error, {
       logPrefix: "List modules error:",
@@ -26,7 +26,7 @@ export const listModule = async (req, res) => {
 export const createModule = async (req, res) => {
   try {
     const module = await moduleService.createModule(req.body);
-    return sendResponse(res, 201, true, "module.create.success", { module });
+    return sendResponse(res, 201, true, "module.create.success", module);
   } catch (error) {
     return handleError(req, res, error, {
       logPrefix: "Create module error:",
@@ -43,7 +43,7 @@ export const createModule = async (req, res) => {
 export const updateModule = async (req, res) => {
   try {
     const module = await moduleService.updateModule(req.params.uuid, req.body);
-    return sendResponse(res, 200, true, "module.update.success", { module });
+    return sendResponse(res, 200, true, "module.update.success", module);
   } catch (error) {
     return handleError(req, res, error, {
       logPrefix: "Update module error:",
@@ -77,7 +77,7 @@ export const deleteModule = async (req, res) => {
 export const getModule = async (req, res) => {
   try {
     const module = await moduleService.getModule(req.params.uuid);
-    return sendResponse(res, 200, true, "module.get.success", { module });
+    return sendResponse(res, 200, true, "module.get.success", module);
   } catch (error) {
     return handleError(req, res, error, {
       logPrefix: "Get module error:",
@@ -111,7 +111,7 @@ export const moduleStatus = async (req, res) => {
 export const getModuleList = async (req, res) => {
   try {
     const module = await moduleService.getModuleList();
-    return sendResponse(res, 200, true, "module.list.success", { module });
+    return sendListResponse(res, 200, true, "module.list.success", module);
   } catch (error) {
     return handleError(req, res, error, {
       logPrefix: "Get module list error:",

@@ -1,5 +1,5 @@
 import { Parser } from "json2csv";
-import { sendResponse, handleError } from "../utils/response.js";
+import { sendResponse, sendListResponse, handleError } from "../utils/response.js";
 import { UserService, userCsvFields } from "../services/user.service.js";
 import { UserRepository } from "../repositories/user.repository.js";
 
@@ -20,7 +20,7 @@ const sanitizeCsvCell = (value) => {
 export const createUser = async (req, res) => {
   try {
     const user = await userService.createUser({ body: req.body, file: req.file, req });
-    return sendResponse(res, 201, true, "user.create.success", { user });
+    return sendResponse(res, 201, true, "user.create.success", user);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Create user error:" });
   }
@@ -33,12 +33,12 @@ export const createUser = async (req, res) => {
  */
 export const listUser = async (req, res) => {
   try {
-    const data = await userService.getUsers({
+    const result = await userService.getUsers({
       current_user_id: req.user?.id || 0,
       query: req.query,
     });
 
-    return sendResponse(res, 200, true, "user.list.success", data);
+    return sendListResponse(res, 200, true, "user.list.success", result.users, result.pagination);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "List user error:" });
   }
@@ -52,7 +52,7 @@ export const listUser = async (req, res) => {
 export const getUser = async (req, res) => {
   try {
     const user = await userService.getUserByUuid(req.params.uuid);
-    return sendResponse(res, 200, true, "user.getMe.success", { user });
+    return sendResponse(res, 200, true, "user.getMe.success", user);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Get user error:" });
   }
@@ -72,7 +72,7 @@ export const updateUser = async (req, res) => {
       req,
     });
 
-    return sendResponse(res, 200, true, "user.update.success", { user });
+    return sendResponse(res, 200, true, "user.update.success", user);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Update user error:" });
   }
@@ -114,7 +114,7 @@ export const userStatus = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const user = await userService.getMe(req.user.id);
-    return sendResponse(res, 200, true, "user.getMe.success", { user });
+    return sendResponse(res, 200, true, "user.getMe.success", user);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Get me error:" });
   }
@@ -128,7 +128,7 @@ export const getMe = async (req, res) => {
 export const getUserList = async (req, res) => {
   try {
     const users = await userService.getAdminUsers();
-    return sendResponse(res, 200, true, "user.list.success", { users });
+    return sendListResponse(res, 200, true, "user.list.success", users);
   } catch (error) {
     return handleError(req, res, error, { logPrefix: "Get user list error:" });
   }

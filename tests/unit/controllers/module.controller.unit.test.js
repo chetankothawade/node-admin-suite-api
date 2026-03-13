@@ -2,6 +2,7 @@ import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { createMockReq, createMockRes } from "../../helpers/mocks.js";
 
 const sendResponse = jest.fn();
+const sendListResponse = jest.fn();
 const handleError = jest.fn();
 const moduleService = {
   listModule: jest.fn(),
@@ -15,6 +16,7 @@ const moduleService = {
 
 jest.unstable_mockModule("../../../src/utils/response.js", () => ({
   sendResponse,
+  sendListResponse,
   handleError,
 }));
 
@@ -32,7 +34,7 @@ describe("module.controller unit", () => {
   it("listModule should call moduleService with params/query", async () => {
     const req = createMockReq({ params: { id: "1" }, query: { search: "adm" } });
     const res = createMockRes();
-    moduleService.listModule.mockResolvedValue({ module: [] });
+    moduleService.listModule.mockResolvedValue({ module: [], pagination: { total: 0 } });
 
     await listModule(req, res);
 
@@ -40,12 +42,13 @@ describe("module.controller unit", () => {
       params: req.params,
       query: req.query,
     });
-    expect(sendResponse).toHaveBeenCalledWith(
+    expect(sendListResponse).toHaveBeenCalledWith(
       res,
       200,
       true,
       "module.list.success",
-      expect.objectContaining({ module: [] })
+      [],
+      { total: 0 }
     );
   });
 
@@ -65,4 +68,3 @@ describe("module.controller unit", () => {
     );
   });
 });
-
