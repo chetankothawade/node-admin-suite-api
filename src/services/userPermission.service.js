@@ -8,6 +8,12 @@ export const userPermissionService = {
       .filter((id) => Number.isInteger(id) && id > 0);
   },
 
+  /*
+   * Resolve user from various possible identifiers (id, uuid) and return user with specified select fields
+   * Accepts either numeric ID or UUID string as userIdentifier
+   * Default select fields are id and role, but can be customized via the select parameter
+   * Throws error if user not found
+  */
   async resolveUser(userIdentifier, select = { id: true, role: true }) {
     const raw = String(userIdentifier ?? "").trim();
 
@@ -24,6 +30,12 @@ export const userPermissionService = {
     return user;
   },
 
+  /*
+  * Resolve module_permission_id from either direct ID or module_id + permission_id
+    * Accepts payload with either:  
+    - module_permission_id
+    - module_id + permission_id
+  */
   async resolveModulePermissionId(payload) {
     const directId = Number(payload.module_permission_id);
     if (Number.isInteger(directId) && directId > 0) {
@@ -86,7 +98,6 @@ export const userPermissionService = {
 
 
   /**
-   *  getModulePermissionMatrix
    * Get module permission matrix for a user, including role-based permissions and user-specific overrides
    * isPermission: "Y" to filter modules with is_permission = "Y"
    */

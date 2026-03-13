@@ -55,6 +55,7 @@ export const userModuleAccess = async (req, res) => {
 
 /**
  * Sidebar menu
+ * GET /user-permissions/sidebar-menu
  */
 export const sidebarMenu = async (req, res) => {
   try {
