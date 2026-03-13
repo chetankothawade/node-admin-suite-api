@@ -5,6 +5,13 @@ import { UserRepository } from "../repositories/user.repository.js";
 
 const userService = new UserService(new UserRepository());
 
+const DANGEROUS_CSV_PREFIX = /^[=+\-@]/;
+
+const sanitizeCsvCell = (value) => {
+  if (typeof value !== "string") return value;
+  return DANGEROUS_CSV_PREFIX.test(value) ? `'${value}` : value;
+};
+
 /**
  * @desc Create a new user
  * @route POST /user/create
@@ -135,8 +142,13 @@ export const getUserList = async (req, res) => {
 export const exportUsersCSV = async (req, res) => {
   try {
     const userData = await userService.getUsersForCsv();
+    const sanitizedData = userData.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [key, sanitizeCsvCell(value)])
+      )
+    );
     const parser = new Parser({ fields: userCsvFields });
-    const csv = parser.parse(userData);
+    const csv = parser.parse(sanitizedData);
 
     res.header("Content-Type", "text/csv");
     res.attachment("users_export.csv");
