@@ -1,4 +1,4 @@
-# Node Admin API
+# CoreStack – Scalable Backend Platform with Auth, RBAC & Chat
 
 Express + Prisma (MySQL) backend for authentication, user management, access control, CMS content, chat, and categories.
 
