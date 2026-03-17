@@ -80,11 +80,6 @@ ADMIN_SECRET_KEY=your_admin_jwt_secret
 JWT_EXPIRES_IN=7d
 ADMIN_JWT_EXPIRES_IN=1d
 
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=prisma_db
-DB_USER=root
-DB_PASS=
 DATABASE_URL=mysql://root:password@localhost:3306/prisma_db
 
 CLIENT_ORIGIN=http://localhost:3000
